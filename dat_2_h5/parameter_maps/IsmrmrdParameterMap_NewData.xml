@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<siemens>
+  <parameters>
+  <!-- K-space base geometry (MEAS) -->
+  <p><s>MEAS.sKSpace.lBaseResolution</s>                      <d>siemens.MEAS.sKSpace.lBaseResolution</d></p>
+  <p><s>MEAS.sKSpace.lPhaseEncodingLines</s>                  <d>siemens.MEAS.sKSpace.lPhaseEncodingLines</d></p>
+  <p><s>MEAS.sKSpace.lPartitions</s>                          <d>siemens.MEAS.sKSpace.lPartitions</d></p>
+  <p><s>MEAS.sKSpace.dPhaseResolution</s>                     <d>siemens.MEAS.sKSpace.dPhaseResolution</d></p>
+  <p><s>MEAS.sKSpace.dSliceResolution</s>                     <d>siemens.MEAS.sKSpace.dSliceResolution</d></p>
+  <p><s>MEAS.sKSpace.ucTrajectory</s>                         <d>siemens.MEAS.sKSpace.ucTrajectory</d></p>
+  <p><s>MEAS.sKSpace.lImagesPerSlab</s>                       <d>siemens.MEAS.sKSpace.lImagesPerSlab</d></p>
+  <p><s>MEAS.sKSpace.dSliceOversamplingForDialog</s>          <d>siemens.MEAS.sKSpace.dSliceOversamplingForDialog</d></p>
+  <p><s>MEAS.sKSpace.ucPhasePartialFourier</s>                <d>siemens.MEAS.sKSpace.ucPhasePartialFourier</d></p>
+  <p><s>MEAS.sKSpace.ucSlicePartialFourier</s>                <d>siemens.MEAS.sKSpace.ucSlicePartialFourier</d></p>
+  <p><s>MEAS.sKSpace.uc2DInterpolation</s>                    <d>siemens.MEAS.sKSpace.uc2DInterpolation</d></p>
+
+  <!-- Derived image geometry from UI (IRIS) -->
+  <p><s>IRIS.DERIVED.ImageColumns</s>                         <d>siemens.IRIS.DERIVED.imageColumns</d></p>
+  <p><s>IRIS.DERIVED.ImageLines</s>                           <d>siemens.IRIS.DERIVED.imageLines</d></p>
+  <p><s>IRIS.DERIVED.phaseOversampling</s>                    <d>siemens.IRIS.DERIVED.phaseOversampling</d></p>
+
+  <!-- Slice geometry / FoV (MEAS) -->
+  <p><s>MEAS.sSliceArray.asSlice.0.dReadoutFOV</s>            <d>siemens.MEAS.sSliceArray.asSlice.s0.dReadoutFOV</d></p>
+  <p><s>MEAS.sSliceArray.asSlice.0.dPhaseFOV</s>              <d>siemens.MEAS.sSliceArray.asSlice.s0.dPhaseFOV</d></p>
+  <p><s>MEAS.sSliceArray.asSlice.0.dThickness</s>             <d>siemens.MEAS.sSliceArray.asSlice.s0.dThickness</d></p>
+  <p><s>MEAS.sSliceArray.lSize</s>                            <d>siemens.MEAS.sSliceArray.lSize</d></p>
+  <p><s>MEAS.sSliceArray.lConc</s>                            <d>siemens.MEAS.sSliceArray.lConc</d></p>
+  <p><s>MEAS.sSliceArray.asSlice.0.dInPlaneRot</s>            <d>siemens.MEAS.sSliceArray.asSlice.s0.dInPlaneRot</d></p>
+
+  <!-- Timing and receiver (MEAS/YAPS) -->
+  <p><s>MEAS.sRXSPEC.alDwellTime</s>                          <d>siemens.MEAS.sRXSPEC.alDwellTime</d></p>
+  <p><s>MEAS.alTR</s>                                         <d>siemens.MEAS.alTR</d></p>
+  <p><s>MEAS.alTE</s>                                         <d>siemens.MEAS.alTE</d></p>
+  <p><s>MEAS.alTI</s>                                         <d>siemens.MEAS.alTI</d></p>
+
+  <!-- Parallel imaging / PAT (MEAS) -->
+  <p><s>MEAS.sPat.lAccelFactPE</s>                            <d>siemens.MEAS.sPat.lAccelFactPE</d></p>
+  <p><s>MEAS.sPat.lAccelFact3D</s>                            <d>siemens.MEAS.sPat.lAccelFact3D</d></p>
+  <p><s>MEAS.sPat.ucPATMode</s>                               <d>siemens.MEAS.sPat.ucPATMode</d></p>
+  <p><s>MEAS.sPat.ucRefScanMode</s>                           <d>siemens.MEAS.sPat.ucRefScanMode</d></p>
+  <p><s>MEAS.sPat.lRefLinesPE</s>                             <d>siemens.MEAS.sPat.lRefLinesPE</d></p>
+  <p><s>MEAS.sPat.lRefLines3D</s>                             <d>siemens.MEAS.sPat.lRefLines3D</d></p>
+
+  <!-- Counts and dimensions (MEAS) -->
+  <p><s>MEAS.lRepetitions</s>                                 <d>siemens.MEAS.lRepetitions</d></p>
+  <p><s>MEAS.lAverages</s>                                    <d>siemens.MEAS.lAverages</d></p>
+  <p><s>MEAS.sPhysioImaging.lPhases</s>                       <d>siemens.MEAS.sPhysioImaging.lPhases</d></p>
+
+  <!-- YAPS fields -->
+  <p><s>YAPS.iNoOfFourierColumns</s>                          <d>siemens.YAPS.iNoOfFourierColumns</d></p>
+  <p><s>YAPS.iNoOfFourierLines</s>                            <d>siemens.YAPS.iNoOfFourierLines</d></p>
+  <p><s>YAPS.iNoOfFourierPartitions</s>                       <d>siemens.YAPS.iNoOfFourierPartitions</d></p>
+  <p><s>YAPS.iRoFTLength</s>                                  <d>siemens.YAPS.iRoFTLength</d></p>
+  <p><s>YAPS.iPEFTLength</s>                                  <d>siemens.YAPS.iPEFTLength</d></p>
+  <p><s>YAPS.i3DFTLength</s>                                  <d>siemens.YAPS.i3DFTLength</d></p>
+  <p><s>YAPS.tMRAcquisitionType</s>                           <d>siemens.YAPS.tMRAcquisitionType</d></p>
+  <p><s>YAPS.flReadoutOSFactor</s>                            <d>siemens.YAPS.flReadoutOSFactor</d></p>
+  <p><s>YAPS.iNSet</s>                                        <d>siemens.YAPS.iNSet</d></p>
+  <p><s>YAPS.tFrameOfReference</s>                            <d>siemens.YAPS.tFrameOfReference</d></p>
+  <p><s>YAPS.iMaxNoOfRxChannels</s>                           <d>siemens.YAPS.iMaxNoOfRxChannels</d></p>
+  <p><s>YAPS.tICEProgramName</s>                              <d>siemens.YAPS.tICEProgramName</d></p>
+  <p><s>YAPS.flMagneticFieldStrength</s>                      <d>siemens.YAPS.flMagneticFieldStrength</d></p>
+  <p><s>YAPS.lEchoSpacing</s>                                 <d>siemens.YAPS.lEchoSpacing</d></p>
+  <p><s>YAPS.alRegridMode</s>                                 <d>siemens.YAPS.alRegridMode</d></p>
+  <p><s>YAPS.alRegridRampupTime</s>                           <d>siemens.YAPS.alRegridRampupTime</d></p>
+  <p><s>YAPS.alRegridRampdownTime</s>                         <d>siemens.YAPS.alRegridRampdownTime</d></p>
+  <p><s>YAPS.alRegridFlattopTime</s>                          <d>siemens.YAPS.alRegridFlattopTime</d></p>
+  <p><s>YAPS.alRegridDelaySamplesTime</s>                     <d>siemens.YAPS.alRegridDelaySamplesTime</d></p>
+  <p><s>YAPS.aflRegridADCDuration</s>                         <d>siemens.YAPS.aflRegridADCDuration</d></p>
+  <p><s>YAPS.alRegridDestSamples</s>                          <d>siemens.YAPS.alRegridDestSamples</d></p>
+  <p><s>YAPS.tPatientPosition</s>                             <d>siemens.YAPS.tPatientPosition</d></p>
+  <p><s>YAPS.flUsedPatientWeight</s>                          <d>siemens.YAPS.flUsedPatientWeight</d></p>
+  <p><s>YAPS.flPatientHeight</s>                              <d>siemens.YAPS.flPatientHeight</d></p>
+  <p><s>YAPS.flPatientAge</s>                                 <d>siemens.YAPS.flPatientAge</d></p>
+
+  <!-- DICOM metadata -->
+  <p><s>DICOM.Manufacturer</s>                                <d>siemens.DICOM.Manufacturer</d></p>
+  <p><s>DICOM.ManufacturersModelName</s>                      <d>siemens.DICOM.ManufacturersModelName</d></p>
+  <p><s>DICOM.DeviceSerialNumber</s>                          <d>siemens.DICOM.DeviceSerialNumber</d></p>
+  <p><s>DICOM.InstitutionName</s>                             <d>siemens.DICOM.InstitutionName</d></p>
+  <p><s>DICOM.Modality</s>                                    <d>siemens.DICOM.Modality</d></p>
+  <p><s>DICOM.tScanningSequence</s>                           <d>siemens.DICOM.tScanningSequence</d></p>
+  <p><s>DICOM.tMRAcquisitionType</s>                          <d>siemens.DICOM.tMRAcquisitionType</d></p>
+  <p><s>DICOM.adFlipAngleDegree</s>                           <d>siemens.DICOM.adFlipAngleDegree</d></p>
+  <p><s>DICOM.lFrequency</s>                                  <d>siemens.DICOM.lFrequency</d></p>
+  <p><s>DICOM.tPatientName</s>                                <d>siemens.DICOM.tPatientName</d></p>
+  <p><s>DICOM.lPatientSex</s>                                 <d>siemens.DICOM.lPatientSex</d></p>
+  <p><s>DICOM.SoftwareVersions</s>                            <d>siemens.DICOM.SoftwareVersions</d></p>
+  <p><s>DICOM.tPatientPosition</s>                            <d>siemens.YAPS.tPatientPosition</d></p>
+
+  <!-- IRIS identifiers -->
+  <p><s>IRIS.RECOMPOSE.PatientID</s>                          <d>siemens.IRIS.RECOMPOSE.PatientID</d></p>
+  <p><s>IRIS.RECOMPOSE.PatientLOID</s>                        <d>siemens.IRIS.RECOMPOSE.PatientLOID</d></p>
+  <p><s>IRIS.RECOMPOSE.PatientBirthDay</s>                    <d>siemens.IRIS.RECOMPOSE.PatientBirthDay</d></p>
+  <p><s>IRIS.RECOMPOSE.StudyLOID</s>                          <d>siemens.IRIS.RECOMPOSE.StudyLOID</d></p>
+ 
+  <!-- Measurement info -->
+  <p><s>MEAS.tProtocolName</s>                                <d>siemens.MEAS.tProtocolName</d></p>
+  <p><s>HEADER.MeasUID</s>                                    <d>siemens.HEADER.MeasUID</d></p>
+  <!-- Fallback in case MeasUID is stored under MEAS in this dataset -->
+  <p><s>HEADER.PatientLOID</s>                                <d>siemens.HEADER.PatientLOID</d></p>
+  <p><s>HEADER.StudyLOID</s>                                  <d>siemens.HEADER.StudyLOID</d></p>
+
+  </parameters>
+</siemens>
