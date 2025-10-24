@@ -39,6 +39,13 @@
             <xsl:when test="siemens/MEAS/sKSpace/ucPhasePartialFourier = 1">0.5</xsl:when>
             <xsl:when test="siemens/MEAS/sKSpace/ucPhasePartialFourier = 2">0.625</xsl:when>
             <xsl:when test="siemens/MEAS/sKSpace/ucPhasePartialFourier = 4">0.75</xsl:when>
+            <!-- DICOM.flReadoutOSFactor -->
+            <xsl:if test="siemens/DICOM/flReadoutOSFactor">
+              <userParameterString>
+                <name>DICOM.flReadoutOSFactor</name>
+                <value><xsl:value-of select="siemens/DICOM/flReadoutOSFactor"/></value>
+              </userParameterString>
+            </xsl:if>
             <xsl:when test="siemens/MEAS/sKSpace/ucPhasePartialFourier = 8">0.875</xsl:when>
             <xsl:otherwise>1.0</xsl:otherwise>
         </xsl:choose>
@@ -715,6 +722,96 @@
                 </xsl:choose>
               </value>
             </userParameterString>
+
+            <!-- Added parameters -->
+            <!-- tStudyDescription: prefer HEADER.tStudyDescription; fallback to MEAS.tProtocolName -->
+            <xsl:choose>
+              <xsl:when test="normalize-space(siemens/HEADER/tStudyDescription)!=''">
+                <userParameterString>
+                  <name>tStudyDescription</name>
+                  <value><xsl:value-of select="normalize-space(siemens/HEADER/tStudyDescription)"/></value>
+                </userParameterString>
+              </xsl:when>
+              <xsl:when test="normalize-space(siemens/MEAS/tProtocolName)!=''">
+                <userParameterString>
+                  <name>tStudyDescription</name>
+                  <value><xsl:value-of select="normalize-space(siemens/MEAS/tProtocolName)"/></value>
+                </userParameterString>
+              </xsl:when>
+            </xsl:choose>
+
+            <!-- phaseOversampling from IRIS.DERIVED (already normalized in helper) -->
+            <userParameterString>
+              <name>phaseOversampling</name>
+              <value><xsl:value-of select="$phaseOversampling"/></value>
+            </userParameterString>
+
+            <!-- ReadoutOversamplingFactor from YAPS.flReadoutOSFactor -->
+            <userParameterString>
+              <name>ReadoutOversamplingFactor</name>
+              <value>
+                <xsl:choose>
+                  <xsl:when test="siemens/YAPS/flReadoutOSFactor &gt; 0">
+                    <xsl:value-of select="siemens/YAPS/flReadoutOSFactor"/>
+                  </xsl:when>
+                  <xsl:otherwise>1.0</xsl:otherwise>
+                </xsl:choose>
+              </value>
+            </userParameterString>
+
+            <!-- PhaseFoV from MEAS.sSliceArray.asSlice.s0.dPhaseFOV -->
+            <xsl:if test="siemens/MEAS/sSliceArray/asSlice/s0/dPhaseFOV &gt; 0">
+              <userParameterString>
+                <name>PhaseFoV</name>
+                <value><xsl:value-of select="siemens/MEAS/sSliceArray/asSlice/s0/dPhaseFOV"/></value>
+              </userParameterString>
+            </xsl:if>
+
+            <!-- BaseResolution from MEAS.sKSpace.lBaseResolution -->
+            <xsl:if test="siemens/MEAS/sKSpace/lBaseResolution &gt; 0">
+              <userParameterString>
+                <name>BaseResolution</name>
+                <value><xsl:value-of select="siemens/MEAS/sKSpace/lBaseResolution"/></value>
+              </userParameterString>
+            </xsl:if>
+
+              <!-- YAPS.iNoOfFourierColumns -->
+              <xsl:if test="siemens/YAPS/iNoOfFourierColumns &gt; 0">
+                <userParameterString>
+                  <name>YAPS.iNoOfFourierColumns</name>
+                  <value><xsl:value-of select="siemens/YAPS/iNoOfFourierColumns"/></value>
+                </userParameterString>
+              </xsl:if>
+
+              <!-- YAPS.iNoOfFourierLines -->
+              <xsl:if test="siemens/YAPS/iNoOfFourierLines &gt; 0">
+                <userParameterString>
+                  <name>YAPS.iNoOfFourierLines</name>
+                  <value><xsl:value-of select="siemens/YAPS/iNoOfFourierLines"/></value>
+                </userParameterString>
+              </xsl:if>
+
+            <!-- NumberOfProcessors: try HEADER first, then YAPS or MEAS if present -->
+            <xsl:choose>
+              <xsl:when test="normalize-space(siemens/HEADER/NumberOfProcessors)!=''">
+                <userParameterString>
+                  <name>NumberOfProcessors</name>
+                  <value><xsl:value-of select="normalize-space(siemens/HEADER/NumberOfProcessors)"/></value>
+                </userParameterString>
+              </xsl:when>
+              <xsl:when test="normalize-space(siemens/YAPS/NumberOfProcessors)!=''">
+                <userParameterString>
+                  <name>NumberOfProcessors</name>
+                  <value><xsl:value-of select="normalize-space(siemens/YAPS/NumberOfProcessors)"/></value>
+                </userParameterString>
+              </xsl:when>
+              <xsl:when test="normalize-space(siemens/MEAS/NumberOfProcessors)!=''">
+                <userParameterString>
+                  <name>NumberOfProcessors</name>
+                  <value><xsl:value-of select="normalize-space(siemens/MEAS/NumberOfProcessors)"/></value>
+                </userParameterString>
+              </xsl:when>
+            </xsl:choose>
           </userParameters>
 
         </ismrmrdHeader>

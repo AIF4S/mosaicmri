@@ -18,6 +18,7 @@
   <p><s>IRIS.DERIVED.ImageColumns</s>                         <d>siemens.IRIS.DERIVED.imageColumns</d></p>
   <p><s>IRIS.DERIVED.ImageLines</s>                           <d>siemens.IRIS.DERIVED.imageLines</d></p>
   <p><s>IRIS.DERIVED.phaseOversampling</s>                    <d>siemens.IRIS.DERIVED.phaseOversampling</d></p>
+  <p><s>HEADER.ReadoutOversamplingFactor</s>                  <d>siemens.HEADER.ReadoutOversamplingFactor</d></p>
 
   <!-- Slice geometry / FoV (MEAS) -->
   <p><s>MEAS.sSliceArray.asSlice.0.dReadoutFOV</s>            <d>siemens.MEAS.sSliceArray.asSlice.s0.dReadoutFOV</d></p>
@@ -44,12 +45,13 @@
   <!-- Counts and dimensions (MEAS) -->
   <p><s>MEAS.lRepetitions</s>                                 <d>siemens.MEAS.lRepetitions</d></p>
   <p><s>MEAS.lAverages</s>                                    <d>siemens.MEAS.lAverages</d></p>
-  <p><s>MEAS.sPhysioImaging.lPhases</s>                       <d>siemens.MEAS.sPhysioImaging.lPhases</d></p>
+  <p><s>MEAS.iNoOfFourierColumns</s>                          <d>siemens.MEAS.sPhysioImaging.lSamplesPerLine</d></p>
+  <p><s>MEAS.iNoOfFourierLines</s>                            <d>siemens.MEAS.sPhysioImaging.lLinesPerImage</d></p>
 
   <!-- YAPS fields -->
+  <p><s>YAPS.iNoOfFourierPartitions</s>                       <d>siemens.YAPS.iNoOfFourierPartitions</d></p>
   <p><s>YAPS.iNoOfFourierColumns</s>                          <d>siemens.YAPS.iNoOfFourierColumns</d></p>
   <p><s>YAPS.iNoOfFourierLines</s>                            <d>siemens.YAPS.iNoOfFourierLines</d></p>
-  <p><s>YAPS.iNoOfFourierPartitions</s>                       <d>siemens.YAPS.iNoOfFourierPartitions</d></p>
   <p><s>YAPS.iRoFTLength</s>                                  <d>siemens.YAPS.iRoFTLength</d></p>
   <p><s>YAPS.iPEFTLength</s>                                  <d>siemens.YAPS.iPEFTLength</d></p>
   <p><s>YAPS.i3DFTLength</s>                                  <d>siemens.YAPS.i3DFTLength</d></p>
@@ -87,6 +89,7 @@
   <p><s>DICOM.lPatientSex</s>                                 <d>siemens.DICOM.lPatientSex</d></p>
   <p><s>DICOM.SoftwareVersions</s>                            <d>siemens.DICOM.SoftwareVersions</d></p>
   <p><s>DICOM.tPatientPosition</s>                            <d>siemens.YAPS.tPatientPosition</d></p>
+  <p><s>DICOM.flReadoutOSFactor</s>                           <d>siemens.DICOM.flReadoutOSFactor</d></p>
 
   <!-- IRIS identifiers -->
   <p><s>IRIS.RECOMPOSE.PatientID</s>                          <d>siemens.IRIS.RECOMPOSE.PatientID</d></p>
@@ -100,6 +103,7 @@
   <!-- Fallback in case MeasUID is stored under MEAS in this dataset -->
   <p><s>HEADER.PatientLOID</s>                                <d>siemens.HEADER.PatientLOID</d></p>
   <p><s>HEADER.StudyLOID</s>                                  <d>siemens.HEADER.StudyLOID</d></p>
+  <p><s>HEADER.tStudyDescription</s>                          <d>siemens.HEADER.tStudyDescription</d></p>
 
   </parameters>
 </siemens>
