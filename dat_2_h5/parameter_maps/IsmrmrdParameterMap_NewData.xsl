@@ -46,6 +46,50 @@
                 <value><xsl:value-of select="siemens/DICOM/flReadoutOSFactor"/></value>
               </userParameterString>
             </xsl:if>
+
+              <!-- Additional DICOM XML params -->
+              <xsl:if test="siemens/DICOM/dSliceResolution">
+                <userParameterString>
+                  <name>DICOM.dSliceResolution</name>
+                  <value><xsl:value-of select="siemens.DICOM.dSliceResolution"/></value>
+                </userParameterString>
+              </xsl:if>
+              <xsl:if test="siemens/DICOM/flUsedPatientWeight">
+                <userParameterString>
+                  <name>DICOM.flUsedPatientWeight</name>
+                  <value><xsl:value-of select="siemens.DICOM.flUsedPatientWeight"/></value>
+                </userParameterString>
+              </xsl:if>
+              <xsl:if test="siemens/DICOM/flTransRefAmpl">
+                <userParameterString>
+                  <name>DICOM.flTransRefAmpl</name>
+                  <value><xsl:value-of select="siemens.DICOM.flTransRefAmpl"/></value>
+                </userParameterString>
+              </xsl:if>
+              <xsl:if test="siemens/DICOM/flPatientAge">
+                <userParameterString>
+                  <name>DICOM.flPatientAge</name>
+                  <value><xsl:value-of select="siemens.DICOM.flPatientAge"/></value>
+                </userParameterString>
+              </xsl:if>
+              <xsl:if test="siemens/DICOM/flMagneticFieldStrength">
+                <userParameterString>
+                  <name>DICOM.flMagneticFieldStrength</name>
+                  <value><xsl:value-of select="siemens.DICOM.flMagneticFieldStrength"/></value>
+                </userParameterString>
+              </xsl:if>
+              <xsl:if test="siemens/DICOM/flPhaseOS">
+                <userParameterString>
+                  <name>DICOM.flPhaseOS</name>
+                  <value><xsl:value-of select="siemens.DICOM.flPhaseOS"/></value>
+                </userParameterString>
+              </xsl:if>
+              <xsl:if test="siemens/DICOM/flSliceOS">
+                <userParameterString>
+                  <name>DICOM.flSliceOS</name>
+                  <value><xsl:value-of select="siemens.DICOM.flSliceOS"/></value>
+                </userParameterString>
+              </xsl:if>
             <xsl:when test="siemens/MEAS/sKSpace/ucPhasePartialFourier = 8">0.875</xsl:when>
             <xsl:otherwise>1.0</xsl:otherwise>
         </xsl:choose>

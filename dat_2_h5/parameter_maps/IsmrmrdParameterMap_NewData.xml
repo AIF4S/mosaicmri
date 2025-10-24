@@ -18,7 +18,6 @@
   <p><s>IRIS.DERIVED.ImageColumns</s>                         <d>siemens.IRIS.DERIVED.imageColumns</d></p>
   <p><s>IRIS.DERIVED.ImageLines</s>                           <d>siemens.IRIS.DERIVED.imageLines</d></p>
   <p><s>IRIS.DERIVED.phaseOversampling</s>                    <d>siemens.IRIS.DERIVED.phaseOversampling</d></p>
-  <p><s>HEADER.ReadoutOversamplingFactor</s>                  <d>siemens.HEADER.ReadoutOversamplingFactor</d></p>
 
   <!-- Slice geometry / FoV (MEAS) -->
   <p><s>MEAS.sSliceArray.asSlice.0.dReadoutFOV</s>            <d>siemens.MEAS.sSliceArray.asSlice.s0.dReadoutFOV</d></p>
@@ -45,8 +44,6 @@
   <!-- Counts and dimensions (MEAS) -->
   <p><s>MEAS.lRepetitions</s>                                 <d>siemens.MEAS.lRepetitions</d></p>
   <p><s>MEAS.lAverages</s>                                    <d>siemens.MEAS.lAverages</d></p>
-  <p><s>MEAS.iNoOfFourierColumns</s>                          <d>siemens.MEAS.sPhysioImaging.lSamplesPerLine</d></p>
-  <p><s>MEAS.iNoOfFourierLines</s>                            <d>siemens.MEAS.sPhysioImaging.lLinesPerImage</d></p>
 
   <!-- YAPS fields -->
   <p><s>YAPS.iNoOfFourierPartitions</s>                       <d>siemens.YAPS.iNoOfFourierPartitions</d></p>
@@ -90,6 +87,13 @@
   <p><s>DICOM.SoftwareVersions</s>                            <d>siemens.DICOM.SoftwareVersions</d></p>
   <p><s>DICOM.tPatientPosition</s>                            <d>siemens.YAPS.tPatientPosition</d></p>
   <p><s>DICOM.flReadoutOSFactor</s>                           <d>siemens.DICOM.flReadoutOSFactor</d></p>
+  <p><s>DICOM.dSliceResolution</s>                            <d>siemens.DICOM.dSliceResolution</d></p>
+  <p><s>DICOM.flUsedPatientWeight</s>                         <d>siemens.DICOM.flUsedPatientWeight</d></p>
+  <p><s>DICOM.flTransRefAmpl</s>                              <d>siemens.DICOM.flTransRefAmpl</d></p>
+  <p><s>DICOM.flPatientAge</s>                                <d>siemens.DICOM.flPatientAge</d></p>
+  <p><s>DICOM.flMagneticFieldStrength</s>                     <d>siemens.DICOM.flMagneticFieldStrength</d></p>
+  <p><s>DICOM.flPhaseOS</s>                                   <d>siemens.DICOM.flPhaseOS</d></p>
+  <p><s>DICOM.flSliceOS</s>                                   <d>siemens.DICOM.flSliceOS</d></p>
 
   <!-- IRIS identifiers -->
   <p><s>IRIS.RECOMPOSE.PatientID</s>                          <d>siemens.IRIS.RECOMPOSE.PatientID</d></p>
