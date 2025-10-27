@@ -47,8 +47,6 @@
 
   <!-- YAPS fields -->
   <p><s>YAPS.iNoOfFourierPartitions</s>                       <d>siemens.YAPS.iNoOfFourierPartitions</d></p>
-  <p><s>YAPS.iNoOfFourierColumns</s>                          <d>siemens.YAPS.iNoOfFourierColumns</d></p>
-  <p><s>YAPS.iNoOfFourierLines</s>                            <d>siemens.YAPS.iNoOfFourierLines</d></p>
   <p><s>YAPS.iRoFTLength</s>                                  <d>siemens.YAPS.iRoFTLength</d></p>
   <p><s>YAPS.iPEFTLength</s>                                  <d>siemens.YAPS.iPEFTLength</d></p>
   <p><s>YAPS.i3DFTLength</s>                                  <d>siemens.YAPS.i3DFTLength</d></p>
