@@ -13,7 +13,7 @@ PARENT_DIR=$(pwd)
 
 ls ${PARENT_DIR}
 DATA_PATH="${PARENT_DIR}/data/datasets/msk_mri"
-OUT_DIR="${PARENT_DIR}/data/datasets/msk_mri_h5"
+OUT_DIR="${PARENT_DIR}/data/datasets/msk_mri_debug"
 
 XSL_FILE="${FILE_NAME}.xsl"
 
@@ -37,16 +37,22 @@ convert2mrd() {
     local noise_out="${OUT_DIR}/noise/noise_${dat_base}.h5"
     local h5_out="${OUT_DIR}/h5/${dat_base}.h5"
 
+    if [[ -f "${h5_out}" ]]; then
+        echo "Skip (exists): ${h5_out}"
+        return 0
+    fi
+    echo "Converting: ${input_dat} to ${h5_out}"
+
     # Adapted from R Ramasawmy convertRR_NX.sh 2019
     NUMFILES=$(siemens_to_ismrmrd -f "${input_dat}" -z 9 | grep only | grep -o '[0-9]*')
 
     if [ "$NUMFILES" -gt "1" ]; then
         # If .dat has noise dependency
         # Only process first noise measurement, and label it "noise_XXX.h5"
-        siemens_to_ismrmrd -f "${input_dat}" -z 1 -o "${noise_out}" -m ${SCRIPT_DIR}/${FILE_NAME}.xml -x ${SCRIPT_DIR}/${XSL_FILE} --skipSyncData
+        siemens_to_ismrmrd -f "${input_dat}" -z 1 -o "${noise_out}" --skipSyncData
     fi
 
-    siemens_to_ismrmrd -f "${input_dat}" -z "$NUMFILES" -o "${h5_out}" -m ${SCRIPT_DIR}/${FILE_NAME}.xml -x ${SCRIPT_DIR}/${XSL_FILE} --skipSyncData
+    siemens_to_ismrmrd -f "${input_dat}" -z "$NUMFILES" -o "${h5_out}" --skipSyncData
 }
 
 remove_mrd() {

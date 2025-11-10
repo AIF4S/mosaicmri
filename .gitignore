@@ -1,2 +1,5 @@
 /data_samples/
 /processed_data/
+/varnet/outputs/
+/varnet/fast_mri_samples
+/varnet/weights/
