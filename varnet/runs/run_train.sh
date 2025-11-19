@@ -4,10 +4,10 @@
 # ================================
 
 # Run training
-python MRI/varnet/train_varnet_paula.py \
+python train_varnet_paula.py \
   --mode train \
-  --data_path ../../../../../data/datasets/fastMRI/knee/multicoil_val \
-  --default_root_dir "./logs/varnet" \
+  --data_path ../../../../../data/datasets/msk_mri_h5/varnet_msk_dataset3 \
+  --default_root_dir "./logs/varnet_msk_mrpro2" \
   --mask_type equispaced_fraction \
   --center_fractions 0.08 \
   --accelerations 4 \
@@ -17,7 +17,7 @@ python MRI/varnet/train_varnet_paula.py \
   --max_epochs 50 \
   --gpus 8 \
   --strategy ddp \
-  --lr 0.001 \
+  --lr 0.0001 \
   --lr_step_size 40 \
   --lr_gamma 0.1 \
   --weight_decay 0.0 \

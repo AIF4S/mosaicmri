@@ -51,7 +51,7 @@ def cli_main(args):
     # ------------
     # WandB logger
     wandb_logger = WandbLogger(
-        project="fastmri-varnet",   # your wandb project
+        project="mskmri-varnet",   # your wandb project
         name=f"varnet_casc{args.num_cascades}_bs{args.batch_size}",  # run name
     )
 
@@ -96,7 +96,12 @@ def cli_main(args):
     # ------------
     # trainer
     # ------------
-    trainer = pl.Trainer.from_argparse_args(args, logger=wandb_logger)
+    trainer = pl.Trainer.from_argparse_args(
+        args,
+        logger=wandb_logger,
+        gradient_clip_val=1.0,   # new: helps prevent exploding grads → NaNs
+        detect_anomaly=False,    # set to True if you want autograd to pinpoint bad ops
+    )
 
     # ------------
     # run
@@ -163,7 +168,7 @@ def build_args():
         chans=18,  # number of top-level channels for U-Net
         sens_pools=4,  # number of pooling layers for sense est. U-Net
         sens_chans=8,  # number of top-level channels for sense est. U-Net
-        lr=0.001,  # Adam learning rate
+        lr=1e-4,  # Adam learning rate
         lr_step_size=40,  # epoch at which to decrease learning rate
         lr_gamma=0.1,  # extent to which to decrease learning rate
         weight_decay=0.0,  # weight regularization strength

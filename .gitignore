@@ -3,3 +3,7 @@
 /varnet/outputs/
 /varnet/fast_mri_samples
 /varnet/weights/
+/varnet/dataset_cache.pkl
+/varnet/logs/
+/varnet/wandb/
+/varnet/weigths/

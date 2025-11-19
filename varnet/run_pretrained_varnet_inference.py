@@ -165,7 +165,7 @@ class VarNetDataTransformAutoMask(T.VarNetDataTransform):
             crop_size=torch.tensor(crop_size),
         )
 
-def run_varnet_model(batch, model, device):
+def run_varnet_model(batch, model, device, vis_kspace=False):
     crop_size = batch.crop_size
 
     masked_kspace = batch.masked_kspace.to(device)
@@ -175,12 +175,16 @@ def run_varnet_model(batch, model, device):
         num_low_frequencies = num_low_frequencies.to(device)
     else:
         num_low_frequencies = torch.tensor(num_low_frequencies, device=device)
-    output, kspace_output = model(
-        masked_kspace,
-        mask,
-        num_low_frequencies
-    )    
 
+    if vis_kspace:
+        output, kspace_output = model( masked_kspace, mask, num_low_frequencies) 
+    else:   
+        output = model( masked_kspace, mask, num_low_frequencies) 
+        kspace_output = None
+
+    if output.shape[-1] < crop_size[0] or output.shape[-2] < crop_size[1]:
+        crop_size = (min(output.shape[-2], crop_size[0]), min(output.shape[-1], crop_size[1]))
+    
     output = T.center_crop(output, crop_size)
 
     target = None
@@ -207,8 +211,13 @@ def vis(batch, slice_num, masked_kspace, target_cpu, output_cpu, kspace_output, 
     masked_kspace_np = masked_kspace.cpu().numpy() if hasattr(masked_kspace, 'numpy') else masked_kspace
     masked_kspace_mag = np.log(np.abs(masked_kspace_np[0, ..., 0] + 1e-9))
 
-    kspace_output_np = kspace_output.cpu().numpy() if hasattr(kspace_output, 'numpy') else kspace_output
-    kspace_output_mag = np.log(np.abs(kspace_output_np[0, ..., 0] + 1e-9))
+    if kspace_output is not None:
+
+        kspace_output_np = kspace_output.cpu().numpy() if hasattr(kspace_output, 'numpy') else kspace_output
+        kspace_output_mag = np.log(np.abs(kspace_output_np[0, ..., 0] + 1e-9))
+        n_plots = 5
+    else:
+        n_plots = 4
 
     if masked_kspace.shape[-1] == 2:
         masked_kspace_cplx = torch.view_as_complex(masked_kspace)
@@ -218,7 +227,7 @@ def vis(batch, slice_num, masked_kspace, target_cpu, output_cpu, kspace_output, 
     img_coils = torch.fft.ifftshift(torch.fft.ifft2(torch.fft.fftshift(masked_kspace_cplx, dim=(-2, -1)), norm="ortho"), dim=(-2, -1))
     img_rss = torch.sqrt((img_coils.abs() ** 2).sum(dim=0))
 
-    fig, axs = plt.subplots(1, 5, figsize=(22, 5))
+    fig, axs = plt.subplots(1, n_plots, figsize=(22, 5))
     axs[0].imshow(masked_kspace_mag[0], cmap='gray')
     axs[0].set_title('Masked k-space (log-mag)')
     axs[0].axis('off')
@@ -231,9 +240,11 @@ def vis(batch, slice_num, masked_kspace, target_cpu, output_cpu, kspace_output, 
     axs[3].imshow(output_cpu, cmap='gray')
     axs[3].set_title('Output')
     axs[3].axis('off')
-    axs[4].imshow(kspace_output_mag[0], cmap='gray')
-    axs[4].set_title('k-space output (mag)')
-    axs[4].axis('off')
+
+    if kspace_output is not None:
+        axs[4].imshow(kspace_output_mag[0], cmap='gray')
+        axs[4].set_title('k-space output (mag)')
+        axs[4].axis('off')
 
     # Put PSNR/SSIM in the main title
     title_psnr = f"{psnr:.2f} dB" if psnr is not None else "N/A"
@@ -263,7 +274,7 @@ def run_inference(challenge, state_dict_file, data_path, output_path, device):
     model = model.eval()
 
     mask_func = subsample.create_mask_for_mask_type(
-        "equispaced", [0.08], [4] ### accelerations
+        "random", [0.08], [4] ### accelerations
     )
     # NEW VARNET DATA TRANSFORM WITH AUTO MASK AXIS
     # data loader setup
@@ -281,34 +292,42 @@ def run_inference(challenge, state_dict_file, data_path, output_path, device):
     output_path.mkdir(parents=True, exist_ok=True)
     files_with_errors = []
     count = 0
-    
+    file_count = 0
+    processed_files = set()
+    print(len(dataloader), "slices to process.")
+
     for batch in tqdm(dataloader, desc="Running inference"):
+        count += 1
+  
         with torch.no_grad():
-            #try:
-            output, slice_num, fname, target, max_value, masked_kspace, kspace_output = run_varnet_model(
-                batch, model, device
-            )
-            # except Exception as e:
-            #     print(f"Error processing file {batch.fname[0]}, slice {batch.slice_num[0]}: {e}")
-            #     files_with_errors.append(batch.fname[0])
-            #     continue
+            try:
+                output, slice_num, fname, target, max_value, masked_kspace, kspace_output = run_varnet_model(
+                    batch, model, device
+                )
+                output_cpu = output.detach().cpu()
+                target_cpu = target.detach().cpu()
+                
+                metrics = compute_metrics(output_cpu, target_cpu, max_value)
+                for name, value in metrics.items():
+                    per_volume_metrics[fname][name].append(value)
+                    global_metrics[name].append(value)
+                psnr = metrics["PSNR"]
+                ssim = metrics["SSIM"]
 
-        output_cpu = output.detach().cpu()
-        target_cpu = target.detach().cpu()
-        
-        metrics = compute_metrics(output_cpu, target_cpu, max_value)
-        for name, value in metrics.items():
-            per_volume_metrics[fname][name].append(value)
-            global_metrics[name].append(value)
-        psnr = metrics["PSNR"]
-        ssim = metrics["SSIM"]
+                # Track unique files and save visualization every 10 files
+                if fname not in processed_files and slice_num == 5:
+                    processed_files.add(fname)
+                    file_count += 1
+                    vis(batch, slice_num, masked_kspace, target_cpu.numpy(), output_cpu.numpy(), kspace_output, psnr, ssim, output_path)
+                
+                outputs[fname].append((slice_num, output_cpu))
+            
+            except Exception as e:
+                if batch.fname[0] not in files_with_errors:
+                    files_with_errors.append(batch.fname[0])
+                    print(f"Error processing file {batch.fname[0]}, slice {batch.slice_num[0]}: {e}")
+                continue
 
-        if slice_num == 10:
-            
-            
-            vis(batch, slice_num, masked_kspace, target_cpu.numpy(), output_cpu.numpy(), kspace_output, psnr, ssim, output_path)
-            breakpoint()
-        outputs[fname].append((slice_num, output_cpu))
     # save outputs
     for fname in outputs:
         # Ensure all tensors are moved to CPU before converting to numpy
@@ -388,6 +407,10 @@ if __name__ == "__main__":
         type=Path,
         required=True,
         help="Path for saving reconstructions",
+    )
+    parser.add_argument(
+        "--vis_kspace",
+        action="store_true"
     )
 
     args = parser.parse_args()
