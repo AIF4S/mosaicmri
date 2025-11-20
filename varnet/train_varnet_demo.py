@@ -135,7 +135,7 @@ def build_args():
     # module config
     parser = VarNetModule.add_model_specific_args(parser)
     parser.set_defaults(
-        num_cascades=8,  # number of unrolled iterations
+        num_cascades=12,  # number of unrolled iterations
         pools=4,  # number of pooling layers for U-Net
         chans=18,  # number of top-level channels for U-Net
         sens_pools=4,  # number of pooling layers for sense est. U-Net

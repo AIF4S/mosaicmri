@@ -256,7 +256,7 @@ def vis(batch, slice_num, masked_kspace, target_cpu, output_cpu, kspace_output, 
 
 
 def run_inference(challenge, state_dict_file, data_path, output_path, device):
-    model = VarNet(num_cascades=8, pools=4, chans=18, sens_pools=4, sens_chans=8)
+    model = VarNet(num_cascades=12, pools=4, chans=18, sens_pools=4, sens_chans=8)
     # download the state_dict if we don't have it
     if state_dict_file is None:
         if not Path(MODEL_FNAMES[challenge]).exists():

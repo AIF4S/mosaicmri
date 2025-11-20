@@ -11,7 +11,6 @@ from argparse import ArgumentParser
 
 import pytorch_lightning as pl
 
-from fastmri.data.mri_data import fetch_dir
 from fastmri.data.subsample import create_mask_for_mask_type
 from fastmri.data.transforms import VarNetDataTransform
 from fastmri.pl_modules import FastMriDataModule, VarNetModule
@@ -19,6 +18,8 @@ from pytorch_lightning.loggers import WandbLogger
 import wandb
 import numpy as np
 from fastmri.pl_modules import mri_module
+from datetime import datetime
+
 
 def patched_log_image(self, name: str, image):
     """Patched log_image that works with both TB and W&B."""
@@ -42,17 +43,15 @@ def patched_log_image(self, name: str, image):
         print(f"Logged image {name} to W&B")
 
 mri_module.MriModule.log_image = patched_log_image
+mri_module.MriModule.num_log_images = 8
 
 def cli_main(args):
     pl.seed_everything(args.seed)
 
-    # ------------
-    # data
-    # ------------
-    # WandB logger
+    run_name = str(args.default_root_dir).split("/")[-2]
     wandb_logger = WandbLogger(
-        project="mskmri-varnet",   # your wandb project
-        name=f"varnet_casc{args.num_cascades}_bs{args.batch_size}",  # run name
+        project="mskmri-varnet",
+        name=run_name
     )
 
     # this creates a k-space mask for transforming input data
@@ -63,7 +62,14 @@ def cli_main(args):
     train_transform = VarNetDataTransform(mask_func=mask, use_seed=False)
     val_transform = VarNetDataTransform(mask_func=mask)
     test_transform = VarNetDataTransform()
-    # ptl data module - this handles data loaders
+
+    # Both can't be not None at the same timw
+    if args.volume_sample_rate is not None and args.volume_sample_rate <= 1:
+        args.sample_rate, args.val_sample_rate, args.test_sample_rate = None, None, None
+
+    if args.sample_rate is not None and args.sample_rate <= 1:
+        args.volume_sample_rate, args.val_volume_sample_rate, args.test_volume_sample_rate = None, None, None
+    
     data_module = FastMriDataModule(
         data_path=args.data_path,
         challenge=args.challenge,
@@ -72,7 +78,12 @@ def cli_main(args):
         test_transform=test_transform,
         test_split=args.test_split,
         test_path=args.test_path,
-        sample_rate=args.sample_rate,
+        sample_rate=args.sample_rate, 
+        val_sample_rate=args.val_sample_rate, 
+        test_sample_rate=args.test_sample_rate, 
+        volume_sample_rate=args.volume_sample_rate,
+        val_volume_sample_rate=args.val_volume_sample_rate,
+        test_volume_sample_rate=args.test_volume_sample_rate,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
         distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
@@ -92,6 +103,7 @@ def cli_main(args):
         lr_gamma=args.lr_gamma,
         weight_decay=args.weight_decay,
     )
+    
 
     # ------------
     # trainer
@@ -101,6 +113,7 @@ def cli_main(args):
         logger=wandb_logger,
         gradient_clip_val=1.0,   # new: helps prevent exploding grads → NaNs
         detect_anomaly=False,    # set to True if you want autograd to pinpoint bad ops
+        callbacks=args.callbacks,
     )
 
     # ------------
@@ -163,7 +176,7 @@ def build_args():
     # module config
     parser = VarNetModule.add_model_specific_args(parser)
     parser.set_defaults(
-        num_cascades=8,  # number of unrolled iterations
+        num_cascades=12,  # number of unrolled iterations
         pools=4,  # number of pooling layers for U-Net
         chans=18,  # number of top-level channels for U-Net
         sens_pools=4,  # number of pooling layers for sense est. U-Net
@@ -187,26 +200,31 @@ def build_args():
 
     args = parser.parse_args()
 
-    # configure checkpointing in checkpoint_dir
-    args.data_path = pathlib.Path(args.data_path) if args.data_path else None
-    args.default_root_dir = pathlib.Path(args.default_root_dir) if args.default_root_dir else None
-    checkpoint_dir = args.default_root_dir / "checkpoints"
-    if not checkpoint_dir.exists():
-        checkpoint_dir.mkdir(parents=True)
+    args.default_root_dir = args.default_root_dir + f"_casc{args.num_cascades}_acc{args.accelerations[0]}"
+    base_root_dir = (pathlib.Path(args.default_root_dir) if args.default_root_dir else pathlib.Path.cwd())
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")  # e.g. 20251119_103012
+    run_root = base_root_dir / run_id
+    run_root.mkdir(parents=True, exist_ok=True)
+    args.default_root_dir = run_root
+
+    checkpoint_dir = args.default_root_dir / "checkpoints" 
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     args.callbacks = [
         pl.callbacks.ModelCheckpoint(
             dirpath=args.default_root_dir / "checkpoints",
-            save_top_k=True,
+            save_top_k=-1,                      # <--- KEEP ALL CHECKPOINTS
             verbose=True,
-            monitor="validation_loss",
+            monitor=None,
             mode="min",
+            every_n_epochs=1,                   # <--- SAVE ONCE PER EPOCH
+            save_on_train_epoch_end=True,       # ensure saving at epoch end
         )
     ]
 
     # set default checkpoint if one exists in our checkpoint directory
     if args.resume_from_checkpoint is None:
-        ckpt_list = sorted(checkpoint_dir.glob("*.ckpt"), key=os.path.getmtime)
+        ckpt_list = sorted(base_root_dir.glob("*.ckpt"), key=os.path.getmtime)
         if ckpt_list:
             args.resume_from_checkpoint = str(ckpt_list[-1])
 
