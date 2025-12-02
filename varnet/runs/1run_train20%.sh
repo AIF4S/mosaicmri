@@ -1,0 +1,55 @@
+#!/bin/bash
+# ================================
+# run_varnet.sh
+# ================================
+
+# Run training
+CUDA_VISIBLE_DEVICES=7 python train_varnet_paula.py \
+  --mode train \
+  --data_path ../../../../../data/datasets/msk_mri_h5/varnet_msk_dataset2 \
+  --default_root_dir "./logs/varnet_mskmrpro_40%_volumes" \
+  --mask_type equispaced_fraction \
+  --center_fractions 0.08 \
+  --accelerations 4 \
+  --num_cascades 8 \
+  --accelerator gpu \
+  --batch_size 1 \
+  --num_workers 16 \
+  --max_epochs 9 \
+  --gpus 1 \
+  --strategy ddp \
+  --lr 0.0001 \
+  --lr_step_size 40 \
+  --lr_gamma 0.1 \
+  --weight_decay 0.0 \
+  --volume_sample_rate 0.4 \
+  --val_volume_sample_rate 0.4 \
+  --test_volume_sample_rate 0.4 \
+  # --limit_train_batches 100 \
+  # --limit_val_batches 200 \ # <- for debugging
+
+
+# Run training
+CUDA_VISIBLE_DEVICES=7 python train_varnet_paula.py \
+  --mode train \
+  --data_path ../../../../../data/datasets/msk_mri_h5/varnet_msk_dataset2 \
+  --default_root_dir "./logs/varnet_mskmrpro_40%_slices" \
+  --mask_type equispaced_fraction \
+  --center_fractions 0.08 \
+  --accelerations 4 \
+  --num_cascades 8 \
+  --accelerator gpu \
+  --batch_size 1 \
+  --num_workers 16 \
+  --max_epochs 9 \
+  --gpus 1 \
+  --strategy ddp \
+  --lr 0.0001 \
+  --lr_step_size 40 \
+  --lr_gamma 0.1 \
+  --weight_decay 0.0 \
+  --sample_rate 0.4 \
+  --val_sample_rate 0.4 \
+  --test_sample_rate 0.4 \
+  # --limit_train_batches 100 \
+  # --limit_val_batches 200 \ # <- for debugging

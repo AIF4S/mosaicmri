@@ -18,6 +18,24 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PARAM_XML="${SCRIPT_DIR}/wip_070_fire_IsmrmrdParameterMap_Siemens_pd_rr.xml"
 PARAM_XSL="${SCRIPT_DIR}/wip_070_fire_IsmrmrdParameterMap_Siemens_pd_rr.xsl"
 
+
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+cd ~/../..
+PARENT_DIR=$(pwd)
+
+ls ${PARENT_DIR}
+INPUT_DIR="${PARENT_DIR}/data/datasets/msk_original"
+OUT_DIR="${PARENT_DIR}/data/datasets/msk_mri_h5"
+
+
+# Optional: custom parameter map/stylesheet (if present)
+FILE_NAME="parameter_maps/IsmrmrdParameterMap_Siemens_debug"
+USER_MAP_XML="${SCRIPT_DIR}/${FILE_NAME}.xml"
+USER_MAP_XSL="${SCRIPT_DIR}/${FILE_NAME}.xsl"
+
+
 # Ensure converter exists
 if ! command -v siemens_to_ismrmrd >/dev/null 2>&1; then
   echo "siemens_to_ismrmrd not found. Please install it and ensure it is on PATH." >&2
@@ -54,13 +72,13 @@ for frr in "${DAT_FILES[@]}"; do
     continue
   fi
 
-  # Extract NUMFILES if present, else fallback to 1
-  NUMFILES=$(grep -oE 'only [0-9]+' <<<"$probe_out" | awk '{print $2}' || true)
-  if [[ -z "${NUMFILES:-}" ]]; then
-    # If the probe failed but no explicit count, assume 1 measurement
-    NUMFILES=1
-  fi
-  echo "Detected measurements: $NUMFILES"
+  # # Extract NUMFILES if present, else fallback to 1
+  # NUMFILES=$(grep -oE 'only [0-9]+' <<<"$probe_out" | awk '{print $2}' || true)
+  # if [[ -z "${NUMFILES:-}" ]]; then
+  #   # If the probe failed but no explicit count, assume 1 measurement
+  #   NUMFILES=1
+  # fi
+  # echo "Detected measurements: $NUMFILES"
 
   base_name=$(basename "$frr")
   stem="${base_name%.*}"
@@ -85,7 +103,7 @@ for frr in "${DAT_FILES[@]}"; do
 
   siemens_to_ismrmrd \
     -f "$frr" \
-    -z "$NUMFILES" \
+    -z 2 \
     -o "h5/${stem}.h5" \
     -m "$PARAM_XML" \
     -x "$PARAM_XSL" \

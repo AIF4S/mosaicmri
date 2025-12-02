@@ -255,16 +255,17 @@ def vis(batch, slice_num, masked_kspace, target_cpu, output_cpu, kspace_output, 
     plt.close(fig)
 
 
-def run_inference(challenge, state_dict_file, data_path, output_path, device):
-    model = VarNet(num_cascades=12, pools=4, chans=18, sens_pools=4, sens_chans=8)
+def run_inference(state_dict_file, data_path, output_path, device, cascades=12):
+    model = VarNet(num_cascades=cascades, pools=4, chans=18, sens_pools=4, sens_chans=8)
     # download the state_dict if we don't have it
     if state_dict_file is None:
-        if not Path(MODEL_FNAMES[challenge]).exists():
+        model_name = MODEL_FNAMES["varnet_knee_mc"]
+        if not Path(model_name).exists():
             url_root = VARNET_FOLDER
-            download_model(url_root + MODEL_FNAMES[challenge], MODEL_FNAMES[challenge])
+            download_model(url_root + model_name, model_name)
 
-        state_dict_file = MODEL_FNAMES[challenge]
-        model = VarNet(num_cascades=12, pools=4, chans=18, sens_pools=4, sens_chans=8)
+        state_dict_file = model_name
+        model = VarNet(num_cascades=cascades, pools=4, chans=18, sens_pools=4, sens_chans=8)
 
         model.load_state_dict(torch.load(state_dict_file))
     else:
@@ -274,7 +275,7 @@ def run_inference(challenge, state_dict_file, data_path, output_path, device):
     model = model.eval()
 
     mask_func = subsample.create_mask_for_mask_type(
-        "random", [0.08], [4] ### accelerations
+        "random", [0.08], [args.accelerations]
     )
     # NEW VARNET DATA TRANSFORM WITH AUTO MASK AXIS
     # data loader setup
@@ -375,16 +376,6 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "--challenge",
-        default="varnet_knee_mc",
-        choices=(
-            "varnet_knee_mc",
-            "varnet_brain_mc",
-        ),
-        type=str,
-        help="Model to run",
-    )
-    parser.add_argument(
         "--device",
         default="cuda",
         type=str,
@@ -412,13 +403,25 @@ if __name__ == "__main__":
         "--vis_kspace",
         action="store_true"
     )
+    parser.add_argument(
+        "--cascades",
+        type=int,
+        default=12,
+        help="Number of cascades in VarNet model",
+    )
+    parser.add_argument(
+        "--accelerations",
+        type=int,
+        default=4,
+        help="Acceleration factor for mask",
+    )
 
     args = parser.parse_args()
 
     run_inference(
-        args.challenge,
         args.state_dict_file,
         args.data_path,
         args.output_path,
         torch.device(args.device),
+        args.cascades
     )

@@ -7,3 +7,6 @@
 /varnet/logs/
 /varnet/wandb/
 /varnet/weigths/
+/varnet/low_quality/
+/varnet/rss_samples/
+/varnet/knee_leaderboard_state_dict.pt

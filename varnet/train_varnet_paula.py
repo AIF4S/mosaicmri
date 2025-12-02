@@ -19,12 +19,16 @@ import wandb
 import numpy as np
 from fastmri.pl_modules import mri_module
 from datetime import datetime
+from dataloaders.custom_mix_data_module import CustomMixDataModule  # Import our custom module
+from pathlib import Path
+
+from dataloaders.custom_category_data_module_clean import CustomCategoryDataModule
+from dataloaders.custom_single_category_mix_data_module import SingleCategoryMixDataModule
 
 
 def patched_log_image(self, name: str, image):
     """Patched log_image that works with both TB and W&B."""
     img = image.detach().cpu().numpy()
-
     if hasattr(self.logger.experiment, "add_image"):
         # TensorBoard
         self.logger.experiment.add_image(name, img, global_step=self.global_step)
@@ -42,17 +46,18 @@ def patched_log_image(self, name: str, image):
         )
         print(f"Logged image {name} to W&B")
 
-mri_module.MriModule.log_image = patched_log_image
-mri_module.MriModule.num_log_images = 8
+# mri_module.MriModule.log_image = patched_log_image
+# mri_module.MriModule.num_log_images = 8
 
 def cli_main(args):
     pl.seed_everything(args.seed)
 
     run_name = str(args.default_root_dir).split("/")[-2]
-    wandb_logger = WandbLogger(
-        project="mskmri-varnet",
-        name=run_name
-    )
+    if not args.debug:
+        wandb_logger = WandbLogger(
+            project="mskmri-varnet",
+            name=run_name
+        )
 
     # this creates a k-space mask for transforming input data
     mask = create_mask_for_mask_type(
@@ -69,25 +74,92 @@ def cli_main(args):
 
     if args.sample_rate is not None and args.sample_rate <= 1:
         args.volume_sample_rate, args.val_volume_sample_rate, args.test_volume_sample_rate = None, None, None
-    
-    data_module = FastMriDataModule(
-        data_path=args.data_path,
-        challenge=args.challenge,
-        train_transform=train_transform,
-        val_transform=val_transform,
-        test_transform=test_transform,
-        test_split=args.test_split,
-        test_path=args.test_path,
-        sample_rate=args.sample_rate, 
-        val_sample_rate=args.val_sample_rate, 
-        test_sample_rate=args.test_sample_rate, 
-        volume_sample_rate=args.volume_sample_rate,
-        val_volume_sample_rate=args.val_volume_sample_rate,
-        test_volume_sample_rate=args.test_volume_sample_rate,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
-        distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
-    )
+
+    if args.data_loader == "default":
+        data_module = FastMriDataModule(
+            data_path=args.data_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            test_split=args.test_split,
+            test_path=args.test_path,
+            sample_rate=args.sample_rate, 
+            val_sample_rate=args.val_sample_rate, 
+            test_sample_rate=args.test_sample_rate, 
+            volume_sample_rate=args.volume_sample_rate,
+            val_volume_sample_rate=args.val_volume_sample_rate,
+            test_volume_sample_rate=args.test_volume_sample_rate,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+        )
+    elif args.data_loader == "custom_mix":
+        data_module = CustomMixDataModule(
+            data_path1=args.data_path1,  # First dataset path
+            data_path2=args.data_path2,  # Second dataset path
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            test_split=args.test_split,
+            test_path1=args.test_path1,
+            test_path2=args.test_path2,
+            sample_rate=args.sample_rate, 
+            val_sample_rate=args.val_sample_rate, 
+            test_sample_rate=args.test_sample_rate, 
+            volume_sample_rate=args.volume_sample_rate,
+            val_volume_sample_rate=args.val_volume_sample_rate,
+            test_volume_sample_rate=args.test_volume_sample_rate,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+        )
+
+    elif args.data_loader == "categories":
+        data_module = CustomCategoryDataModule(
+            data_path=args.data_path,  # First dataset path
+            category_mapping_path=args.category_mapping_path,
+            category_order=args.category_order,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            test_split=args.test_split,
+            test_path=args.test_path,
+            sample_rate=args.sample_rate, 
+            val_sample_rate=args.val_sample_rate, 
+            test_sample_rate=args.test_sample_rate, 
+            volume_sample_rate=args.volume_sample_rate,
+            val_volume_sample_rate=args.val_volume_sample_rate,
+            test_volume_sample_rate=args.test_volume_sample_rate,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+        )
+    elif args.data_loader == "knees_only":
+        data_module = SingleCategoryMixDataModule(
+            data_path1=args.data_path1,  # First dataset path
+            data_path2=args.data_path2,  # Second dataset path
+            category_mapping_path=args.category_mapping_path,
+            category_name="knee",
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            test_split=args.test_split,
+            test_path1=args.test_path1,
+            test_path2=args.test_path2,
+            sample_rate=args.sample_rate, 
+            val_sample_rate=args.val_sample_rate, 
+            test_sample_rate=args.test_sample_rate, 
+            volume_sample_rate=args.volume_sample_rate,
+            val_volume_sample_rate=args.val_volume_sample_rate,
+            test_volume_sample_rate=args.test_volume_sample_rate,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+        )
 
     # ------------
     # model
@@ -110,7 +182,6 @@ def cli_main(args):
     # ------------
     trainer = pl.Trainer.from_argparse_args(
         args,
-        logger=wandb_logger,
         gradient_clip_val=1.0,   # new: helps prevent exploding grads → NaNs
         detect_anomaly=False,    # set to True if you want autograd to pinpoint bad ops
         callbacks=args.callbacks,
@@ -142,6 +213,33 @@ def build_args():
         type=str,
         help="Operation mode",
     )
+    parser.add_argument(
+        "--data_loader",
+        default="default",
+        choices=("default", "custom_mix", "categories", "knees_only"),
+        type=str,
+        help="Data loader type",
+    )
+    parser.add_argument(
+        "--data_path1", default=None, type=Path)
+    parser.add_argument(
+        "--data_path2", default=None, type=Path)
+    parser.add_argument(
+        "--test_path1", default=None, type=Path)
+    parser.add_argument(
+        "--test_path2", default=None, type=Path)
+    
+    parser.add_argument(
+        "--category_mapping_path", default=None, type=Path,
+        help="Path to JSON file mapping filenames to categories"
+    )
+    parser.add_argument(
+        "--category_order", 
+        nargs="+",
+        default=[],
+        type=str,
+        help="List of categories to include, in order"
+    )
 
     # data transform params
     parser.add_argument(
@@ -164,6 +262,11 @@ def build_args():
         default=[4],
         type=int,
         help="Acceleration rates to use for masks",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="If set, use small subset of data for faster debugging",
     )
     # data config
     parser = FastMriDataModule.add_data_specific_args(parser)
