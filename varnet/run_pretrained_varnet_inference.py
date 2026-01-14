@@ -269,13 +269,15 @@ def run_inference(state_dict_file, data_path, output_path, device, cascades=12):
 
         model.load_state_dict(torch.load(state_dict_file))
     else:
+        print("\n Loading Model from checkpoint!!!\n")
         from fastmri.pl_modules import VarNetModule
         model = VarNetModule.load_from_checkpoint(state_dict_file)
     
     model = model.eval()
+    print("\n ACCELERATIONS", args.accelerations)
 
     mask_func = subsample.create_mask_for_mask_type(
-        "random", [0.08], [args.accelerations]
+        "equispaced_fraction", [0.08], [args.accelerations]
     )
     # NEW VARNET DATA TRANSFORM WITH AUTO MASK AXIS
     # data loader setup
@@ -290,6 +292,20 @@ def run_inference(state_dict_file, data_path, output_path, device, cascades=12):
     per_volume_metrics = defaultdict(lambda: defaultdict(list))
     global_metrics = defaultdict(list)
     model = model.to(device)
+    if not data_path.exists():
+        raise FileNotFoundError(f"Data path {data_path} does not exist.")
+
+    # Modify output_path based on data_path content
+    folder_name = str(output_path).split("/")[-1]
+    root_name = str(output_path).split("/")[:-1]
+    root_name = Path("/".join(root_name))
+    if "msk" in str(data_path).lower():
+        print("\nDetected MSK dataset in data_path.")
+        output_path = root_name / "test_on_msk" / folder_name
+    elif "fastmri" in str(data_path).lower():
+        print("\nDetected fastMRI dataset in data_path.")
+        output_path = root_name / "test_on_fastmri" / folder_name
+
     output_path.mkdir(parents=True, exist_ok=True)
     files_with_errors = []
     count = 0
@@ -319,7 +335,8 @@ def run_inference(state_dict_file, data_path, output_path, device, cascades=12):
                 if fname not in processed_files and slice_num == 5:
                     processed_files.add(fname)
                     file_count += 1
-                    vis(batch, slice_num, masked_kspace, target_cpu.numpy(), output_cpu.numpy(), kspace_output, psnr, ssim, output_path)
+                    if file_count % args.save_every == 0:
+                        vis(batch, slice_num, masked_kspace, target_cpu.numpy(), output_cpu.numpy(), kspace_output, psnr, ssim, output_path)
                 
                 outputs[fname].append((slice_num, output_cpu))
             
@@ -334,7 +351,7 @@ def run_inference(state_dict_file, data_path, output_path, device, cascades=12):
         # Ensure all tensors are moved to CPU before converting to numpy
         outputs[fname] = np.stack([out.cpu().numpy() for _, out in sorted(outputs[fname])])
 
-    fastmri.save_reconstructions(outputs, output_path / "reconstructions")
+    #fastmri.save_reconstructions(outputs, output_path / "reconstructions")
 
     if global_metrics:
         per_volume_summary = {
@@ -406,14 +423,20 @@ if __name__ == "__main__":
     parser.add_argument(
         "--cascades",
         type=int,
-        default=12,
+        default=8,
         help="Number of cascades in VarNet model",
     )
     parser.add_argument(
         "--accelerations",
         type=int,
-        default=4,
+        default=8,
         help="Acceleration factor for mask",
+    )
+    parser.add_argument(
+        "--save_every",
+        type=int,
+        default=10,
+        help="Save visualization every N unique files",
     )
 
     args = parser.parse_args()

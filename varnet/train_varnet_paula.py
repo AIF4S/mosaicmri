@@ -10,6 +10,7 @@ import pathlib
 from argparse import ArgumentParser
 
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import LearningRateMonitor
 
 from fastmri.data.subsample import create_mask_for_mask_type
 from fastmri.data.transforms import VarNetDataTransform
@@ -24,6 +25,7 @@ from pathlib import Path
 
 from dataloaders.custom_category_data_module_clean import CustomCategoryDataModule
 from dataloaders.custom_single_category_mix_data_module import SingleCategoryMixDataModule
+from dataloaders.custom_balanced_category_data_module import BalancedCategoryDataModule
 
 
 def patched_log_image(self, name: str, image):
@@ -46,13 +48,66 @@ def patched_log_image(self, name: str, image):
         )
         print(f"Logged image {name} to W&B")
 
-# mri_module.MriModule.log_image = patched_log_image
-# mri_module.MriModule.num_log_images = 8
+mri_module.MriModule.log_image = patched_log_image
+mri_module.MriModule.num_log_images = 4
+
+class IntraEpochCheckpoint(pl.Callback):
+    """Save multiple checkpoints during each training epoch at evenly spaced batch indices.
+
+    This avoids only saving at epoch end and instead saves `num_per_epoch` times within the epoch.
+    """
+    def __init__(self, dirpath: pathlib.Path, num_per_epoch: int = 10):
+        super().__init__()
+        self.dirpath = pathlib.Path(dirpath)
+        self.num_per_epoch = max(0, int(num_per_epoch))
+        self._targets = []  # batch indices at which to save within current epoch
+        self.dirpath.mkdir(parents=True, exist_ok=True)
+
+    def on_train_epoch_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+        if self.num_per_epoch <= 0:
+            self._targets = []
+            return
+        # Determine number of training batches for this epoch
+        num_batches = trainer.num_training_batches
+        if isinstance(num_batches, (list, tuple)):
+            # In case of multiple dataloaders, take total
+            num_batches = sum(int(x) for x in num_batches)
+        num_batches = int(num_batches) if num_batches is not None else 0
+        if num_batches <= 1:
+            self._targets = []
+            return
+        # Evenly spaced indices excluding 0 and last batch
+        # positions are computed with (k / (N+1)) * num_batches
+        targets = []
+        for k in range(1, self.num_per_epoch + 1):
+            t = (k / (self.num_per_epoch + 1)) * num_batches
+            idx = max(0, min(num_batches - 1, int(round(t)) - 1))
+            targets.append(idx)
+        # Deduplicate and sort
+        self._targets = sorted(set(targets))
+
+    def on_train_batch_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule, outputs, batch, batch_idx: int) -> None:
+        if not self._targets:
+            return
+        current_epoch = trainer.current_epoch
+        if batch_idx in self._targets:
+            # Build filename
+            global_step = trainer.global_step
+            fname = f"epoch{current_epoch:03d}_intra_step{global_step}.ckpt"
+            save_path = self.dirpath / fname
+            # Use trainer to save checkpoint to include all state
+            trainer.save_checkpoint(str(save_path))
+            # Remove this target so we don't save twice for the same batch
+            try:
+                self._targets.remove(batch_idx)
+            except ValueError:
+                pass
 
 def cli_main(args):
     pl.seed_everything(args.seed)
 
     run_name = str(args.default_root_dir).split("/")[-2]
+    wandb_logger = None
     if not args.debug:
         wandb_logger = WandbLogger(
             project="mskmri-varnet",
@@ -137,9 +192,27 @@ def cli_main(args):
             num_workers=args.num_workers,
             distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
         )
+    elif args.data_loader == "balanced_categories":
+        # Expect args.volume_rates to be a list matching category_order
+        if args.volume_rates is None:
+            raise ValueError("--volume_rates must be provided for balanced_categories")
+        data_module = BalancedCategoryDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            category_order=args.category_order,
+            volume_rates=args.volume_rates,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            use_dataset_cache_file=(args.use_dataset_cache_file if hasattr(args, 'use_dataset_cache_file') else True),
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+        )
     elif args.data_loader == "knees_only":
         data_module = SingleCategoryMixDataModule(
-            data_path1=args.data_path1,  # First dataset path
+            data_path1=args.data_path1,  # First dataset path 
             data_path2=args.data_path2,  # Second dataset path
             category_mapping_path=args.category_mapping_path,
             category_name="knee",
@@ -147,6 +220,7 @@ def cli_main(args):
             train_transform=train_transform,
             val_transform=val_transform,
             test_transform=test_transform,
+            val_source=getattr(args, "val_source", "mixed"),
             test_split=args.test_split,
             test_path1=args.test_path1,
             test_path2=args.test_path2,
@@ -185,6 +259,7 @@ def cli_main(args):
         gradient_clip_val=1.0,   # new: helps prevent exploding grads → NaNs
         detect_anomaly=False,    # set to True if you want autograd to pinpoint bad ops
         callbacks=args.callbacks,
+    logger=wandb_logger if wandb_logger is not None else True,
     )
 
     # ------------
@@ -216,7 +291,7 @@ def build_args():
     parser.add_argument(
         "--data_loader",
         default="default",
-        choices=("default", "custom_mix", "categories", "knees_only"),
+        choices=("default", "custom_mix", "categories", "knees_only", "balanced_categories"),
         type=str,
         help="Data loader type",
     )
@@ -270,11 +345,39 @@ def build_args():
     )
     # data config
     parser = FastMriDataModule.add_data_specific_args(parser)
+
+    # SingleCategoryMixDataModule-specific
+    parser.add_argument(
+        "--val_source",
+        choices=("mixed", "data1", "data2"),
+        default="mixed",
+        type=str,
+        help="Validation set source for knees_only dataloader: mixed concat, dataset1-only, or dataset2-only.",
+    )
+    parser.add_argument(
+        "--volume_rates",
+        nargs="+",
+        type=float,
+        default=None,
+        help="Per-category volume sampling rates (one float per category in --category_order).",
+    )
     parser.set_defaults(
         mask_type="equispaced_fraction",
         challenge="multicoil",
         batch_size=4,
         test_path=None,
+    )
+    parser.add_argument(
+        "--intra_epoch_checkpoints",
+        type=int,
+        default=0,
+        help="If > 0, save this many evenly spaced checkpoints during each training epoch (intra-epoch).",
+    )
+    parser.add_argument(
+        "--seed",
+        default=42,
+        type=int,
+        help="Random seed"
     )
     # module config
     parser = VarNetModule.add_model_specific_args(parser)
@@ -285,7 +388,7 @@ def build_args():
         sens_pools=4,  # number of pooling layers for sense est. U-Net
         sens_chans=8,  # number of top-level channels for sense est. U-Net
         lr=1e-4,  # Adam learning rate
-        lr_step_size=40,  # epoch at which to decrease learning rate
+        lr_step_size=100,  # epoch at which to decrease learning rate
         lr_gamma=0.1,  # extent to which to decrease learning rate
         weight_decay=0.0,  # weight regularization strength
     )
@@ -324,11 +427,23 @@ def build_args():
             save_on_train_epoch_end=True,       # ensure saving at epoch end
         )
     ]
+    # Log learning rate to logger (e.g., W&B) every step
+    args.callbacks.append(LearningRateMonitor(logging_interval="step"))
+
+    # Optionally add intra-epoch checkpointing
+    if getattr(args, "intra_epoch_checkpoints", 0) and args.intra_epoch_checkpoints > 0:
+        args.callbacks.append(
+            IntraEpochCheckpoint(
+                dirpath=checkpoint_dir,
+                num_per_epoch=args.intra_epoch_checkpoints,
+            )
+        )
 
     # set default checkpoint if one exists in our checkpoint directory
     if args.resume_from_checkpoint is None:
         ckpt_list = sorted(base_root_dir.glob("*.ckpt"), key=os.path.getmtime)
         if ckpt_list:
+            print(f"Found existing checkpoint(s), resuming from latest: {ckpt_list[-1]}")
             args.resume_from_checkpoint = str(ckpt_list[-1])
 
     return args
