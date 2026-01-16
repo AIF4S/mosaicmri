@@ -25,6 +25,7 @@ common_vars=(
   --center_fractions 0.04
   --accelerations 8
   --num_cascades 8
+  --mask_type random
   --accelerator gpu
   --batch_size 1
   --num_workers 16

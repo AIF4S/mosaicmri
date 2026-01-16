@@ -5,7 +5,7 @@
 
 # All anatomy categories
 parts=(
-  T2
+  # T2
 
   # T1
   # T1_FS
@@ -13,8 +13,8 @@ parts=(
   # PD
   # PD_FS
 
-  # T2_FS
-  # STIR
+  T2_FS
+  STIR
 )
 
 # Common args for all trainings
@@ -41,7 +41,7 @@ common_vars=(
 i=0
 for part in "${parts[@]}"; do
   echo ">>> Training anatomy: ${part}"
-  CUDA_VISIBLE_DEVICES=5 python train_varnet_paula.py \
+  CUDA_VISIBLE_DEVICES=7 python train_varnet_paula.py \
     "${common_vars[@]}" \
     --default_root_dir "../../../../../data/checkpoints/msk_mri_dataset/logs/logs/january_exps/protocols_full/varnet_msk_protocols_${part}" \
     --category_order "${part}" \
