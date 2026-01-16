@@ -7,9 +7,9 @@
 CUDA_VISIBLE_DEVICES=3 python train_varnet_paula.py \
   --mode train \
   --data_path ../../../../../data/datasets/msk_mri_h5/varnet_msk_dataset2 \
-    --default_root_dir "../../../../../data/checkpoints/msk_mri_dataset/logs/logs/january_exps/varnet_mskmrpro_FULL" \
-  --mask_type equispaced_fraction \
-  --center_fractions 0.08 \
+  --default_root_dir "../../../../../data/checkpoints/msk_mri_dataset/logs/logs/january_exps/varnet_mskmrpro_FULL" \
+  --mask_type random \
+  --center_fractions 0.04 \
   --accelerations 8 \
   --num_cascades 8 \
   --accelerator gpu \

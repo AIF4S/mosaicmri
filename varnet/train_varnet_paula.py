@@ -26,6 +26,7 @@ from pathlib import Path
 from dataloaders.custom_category_data_module_clean import CustomCategoryDataModule
 from dataloaders.custom_single_category_mix_data_module import SingleCategoryMixDataModule
 from dataloaders.custom_balanced_category_data_module import BalancedCategoryDataModule
+from dataloaders.custom_json_slice_mix_data_module import JsonSliceMixDataModule
 
 
 def patched_log_image(self, name: str, image):
@@ -235,6 +236,32 @@ def cli_main(args):
             distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
         )
 
+    elif args.data_loader == "json_slice_mix":
+        data_module = JsonSliceMixDataModule(
+            data_path1=args.data_path1,
+            data_path2=args.data_path2,
+            selector_json_path=args.selector_json_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            use_json_slices=True,
+            require_json_split=args.require_json_split,
+            val_source=getattr(args, "val_source", "mixed"),
+            test_split=args.test_split,
+            test_path1=args.test_path1,
+            test_path2=args.test_path2,
+            sample_rate=args.sample_rate,
+            val_sample_rate=args.val_sample_rate,
+            test_sample_rate=args.test_sample_rate,
+            volume_sample_rate=args.volume_sample_rate,
+            val_volume_sample_rate=args.val_volume_sample_rate,
+            test_volume_sample_rate=args.test_volume_sample_rate,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+        )
+
     # ------------
     # model
     # ------------
@@ -291,7 +318,7 @@ def build_args():
     parser.add_argument(
         "--data_loader",
         default="default",
-        choices=("default", "custom_mix", "categories", "knees_only", "balanced_categories"),
+    choices=("default", "custom_mix", "categories", "knees_only", "balanced_categories", "json_slice_mix"),
         type=str,
         help="Data loader type",
     )
@@ -303,6 +330,19 @@ def build_args():
         "--test_path1", default=None, type=Path)
     parser.add_argument(
         "--test_path2", default=None, type=Path)
+
+    # JsonSliceMixDataModule-specific
+    parser.add_argument(
+        "--selector_json_path",
+        default=None,
+        type=Path,
+        help="Path to dataset JSON containing selected files/slices (used by json_slice_mix)",
+    )
+    parser.add_argument(
+        "--require_json_split",
+        action="store_true",
+        help="If set, dataset1 only uses JSON entries whose split matches each partition (train/val/test).",
+    )
     
     parser.add_argument(
         "--category_mapping_path", default=None, type=Path,
