@@ -10,3 +10,5 @@
 /varnet/low_quality/
 /varnet/rss_samples/
 /varnet/knee_leaderboard_state_dict.pt
+/HUMUS-Net/humusnet_val_outputs
+/HUMUS-Net/humusnet_val_outputs_msk
