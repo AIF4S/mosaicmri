@@ -27,6 +27,7 @@ from dataloaders.custom_category_data_module_clean import CustomCategoryDataModu
 from dataloaders.custom_single_category_mix_data_module import SingleCategoryMixDataModule
 from dataloaders.custom_balanced_category_data_module import BalancedCategoryDataModule
 from dataloaders.custom_json_slice_mix_data_module import JsonSliceMixDataModule
+from dataloaders.custom_json_train_knee_val_data_module import JsonTrainKneeValDataModule
 
 
 def patched_log_image(self, name: str, image):
@@ -262,6 +263,24 @@ def cli_main(args):
             distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
         )
 
+    elif args.data_loader == "json_train_knee_val":
+        # Train on explicit JSON slice selection; validate on MSK KNEE only.
+        # Note: we intentionally treat *all* JSON slices as training set.
+        data_module = JsonTrainKneeValDataModule(
+            data_path_train_root=args.data_path_train_root,
+            selector_json_path=args.selector_json_path,
+            data_path_val_root=args.data_path_val_root,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            require_json_split=args.require_json_split,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+        )
+
     # ------------
     # model
     # ------------
@@ -318,7 +337,7 @@ def build_args():
     parser.add_argument(
         "--data_loader",
         default="default",
-    choices=("default", "custom_mix", "categories", "knees_only", "balanced_categories", "json_slice_mix"),
+    choices=("default", "custom_mix", "categories", "knees_only", "balanced_categories", "json_slice_mix", "json_train_knee_val"),
         type=str,
         help="Data loader type",
     )
@@ -337,6 +356,20 @@ def build_args():
         default=None,
         type=Path,
         help="Path to dataset JSON containing selected files/slices (used by json_slice_mix)",
+    )
+
+    # JsonTrainKneeValDataModule-specific
+    parser.add_argument(
+        "--data_path_train_root",
+        default=None,
+        type=Path,
+        help="Root used to resolve JSON-selected training files (used by json_train_knee_val)",
+    )
+    parser.add_argument(
+        "--data_path_val_root",
+        default=None,
+        type=Path,
+        help="Validation root directory (e.g. .../varnet_msk_dataset2/multicoil_val) (used by json_train_knee_val)",
     )
     parser.add_argument(
         "--require_json_split",
