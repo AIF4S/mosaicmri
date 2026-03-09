@@ -46,10 +46,10 @@
 # Keep only selected BENCHMARKS files
 /BENCHMARKS/**
 !/BENCHMARKS/
-!/BENCHMARKS/validate_ankle_challenge_targets.ipynb
-!/BENCHMARKS/validate_contrast_challenge_targets.ipynb
-!/BENCHMARKS/validate_multicoil_test_targets.ipynb
-!/BENCHMARKS/validate_targets_core.py
+!/BENCHMARKS/validate_ankle_challenge_reconstructions.ipynb
+!/BENCHMARKS/validate_contrast_challenge_reconstructions.ipynb
+!/BENCHMARKS/validate_multicoil_test_reconstructions.ipynb
+!/BENCHMARKS/validate_reconstructions_core.py
 
 # Keep only selected dataset analysis notebooks
 /notebooks/**
