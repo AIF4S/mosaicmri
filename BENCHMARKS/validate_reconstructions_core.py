@@ -107,10 +107,11 @@ def run_validation_report(reference_root: Path, my_root: Path, max_folder_size_g
     name_ok = bool(s["name_match_100"])
     keys_ok = s["keys_ok_count"] == s["shared_file_count"] and s["shared_file_count"] > 0
     shape_ok = s["shape_ok_count"] == s["shared_file_count"] and s["shared_file_count"] > 0
+    kspace_ok = s["kspace_present_count"] == 0
     error_ok = s["error_count"] == 0
     size_ok = s["size_gib"] <= max_folder_size_gib
 
-    ready_to_package = name_ok and keys_ok and shape_ok and error_ok and size_ok
+    ready_to_package = name_ok and keys_ok and shape_ok and kspace_ok and error_ok and size_ok
 
     print("=" * 96)
     print("Validation Report")
@@ -131,6 +132,7 @@ def run_validation_report(reference_root: Path, my_root: Path, max_folder_size_g
     print(f"- Keys exactly expected:      {s['keys_ok_count']} / {shared}")
     print(f"- reconstruction_rss shapes:  {s['shape_ok_count']} / {shared}")
     print(f"- Files that still contain kspace: {s['kspace_present_count']}")
+    print(f"- K-space absent in all files: {kspace_ok}")
     print(f"- Read/parse errors:          {s['error_count']}")
     print()
     print("Size check")
