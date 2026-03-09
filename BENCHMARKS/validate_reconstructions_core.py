@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import shutil
 import h5py
 import pandas as pd
 from IPython.display import Markdown, display
@@ -136,7 +135,7 @@ def run_validation_report(reference_root: Path, my_root: Path, max_folder_size_g
     print("=" * 96)
 
     if ready_to_package:
-        display(Markdown("### Ready to zip and send"))
+        display(Markdown("### Ready for Submission"))
         print("All checks passed: names, keys, shapes, and size.")
     else:
         display(Markdown("### Not ready yet"))
@@ -161,26 +160,3 @@ def run_validation_report(reference_root: Path, my_root: Path, max_folder_size_g
         display(issues[["relative_path", "keys_ok", "shape_ok", "my_keys", "error"]].head(20))
 
     return ready_to_package, report
-
-
-def zip_if_ready(ready_to_package: bool, my_root: Path, zip_output_path: Path):
-    if not ready_to_package:
-        display(Markdown("### ZIP blocked"))
-        print("Folder is not ready yet. Fix validation issues before zipping.")
-        return
-
-    display(Markdown("### ZIP step"))
-    print("Folder is ready.")
-    print("ZIP target:", zip_output_path)
-    ans = input("Create zip now? Type yes to continue: ").strip().lower()
-    if ans != "yes":
-        print("Canceled.")
-        return
-
-    zip_output_path.parent.mkdir(parents=True, exist_ok=True)
-    if zip_output_path.exists():
-        zip_output_path.unlink()
-    archive_base = str(zip_output_path.with_suffix(""))
-    shutil.make_archive(archive_base, "zip", root_dir=str(my_root.parent), base_dir=str(my_root.name))
-    display(Markdown("### ZIP created"))
-    print("ZIP created:", zip_output_path)
