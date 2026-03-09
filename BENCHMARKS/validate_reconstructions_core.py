@@ -48,6 +48,7 @@ def validate_candidate(reference_root: Path, my_root: Path, expected_keys: set[s
             with h5py.File(rp, "r") as rf, h5py.File(mp, "r") as mf:
                 mkeys = set(mf.keys())
                 keys_ok = mkeys == expected
+                has_kspace = "kspace" in mkeys
                 ref_shape = tuple(rf["reconstruction_rss"].shape) if "reconstruction_rss" in rf else None
                 my_shape = tuple(mf["reconstruction_rss"].shape) if "reconstruction_rss" in mf else None
                 shape_ok = ref_shape == my_shape
@@ -56,6 +57,7 @@ def validate_candidate(reference_root: Path, my_root: Path, expected_keys: set[s
                         "relative_path": str(rel),
                         "keys_ok": keys_ok,
                         "shape_ok": shape_ok,
+                        "has_kspace": has_kspace,
                         "my_keys": sorted(list(mkeys)),
                         "error": None,
                     }
@@ -66,6 +68,7 @@ def validate_candidate(reference_root: Path, my_root: Path, expected_keys: set[s
                     "relative_path": str(rel),
                     "keys_ok": False,
                     "shape_ok": False,
+                    "has_kspace": False,
                     "my_keys": None,
                     "error": str(e),
                 }
@@ -85,6 +88,7 @@ def validate_candidate(reference_root: Path, my_root: Path, expected_keys: set[s
         "name_match_100": (len(missing) == 0 and len(extra) == 0),
         "keys_ok_count": int(df["keys_ok"].sum()) if shared_n else 0,
         "shape_ok_count": int(df["shape_ok"].sum()) if shared_n else 0,
+        "kspace_present_count": int(df["has_kspace"].sum()) if shared_n else 0,
         "error_count": int(df["error"].notna().sum()) if shared_n else 0,
         "size_bytes": size_b,
         "size_gib": size_gib,
@@ -126,6 +130,7 @@ def run_validation_report(reference_root: Path, my_root: Path, max_folder_size_g
     print("Content checks on shared files")
     print(f"- Keys exactly expected:      {s['keys_ok_count']} / {shared}")
     print(f"- reconstruction_rss shapes:  {s['shape_ok_count']} / {shared}")
+    print(f"- Files that still contain kspace: {s['kspace_present_count']}")
     print(f"- Read/parse errors:          {s['error_count']}")
     print()
     print("Size check")
@@ -140,6 +145,10 @@ def run_validation_report(reference_root: Path, my_root: Path, max_folder_size_g
     else:
         display(Markdown("### Not ready yet"))
         print("One or more checks failed. Review details below.")
+        if s["kspace_present_count"] > 0:
+            display(Markdown("### K-space detected"))
+            print("Some candidate files still contain kspace.")
+            print("Use `export_reconstruction_only_folder(...)` to create a clean folder without kspace.")
 
     if s["missing_count"] > 0:
         print()
@@ -160,3 +169,35 @@ def run_validation_report(reference_root: Path, my_root: Path, max_folder_size_g
         display(issues[["relative_path", "keys_ok", "shape_ok", "my_keys", "error"]].head(20))
 
     return ready_to_package, report
+
+
+def export_reconstruction_only_folder(source_root: Path, output_root: Path, overwrite: bool = False):
+    if not source_root.exists():
+        raise FileNotFoundError(f"Source root not found: {source_root}")
+
+    if output_root.exists() and any(output_root.iterdir()) and not overwrite:
+        raise FileExistsError(
+            f"Output root already exists and is not empty: {output_root}. "
+            "Use overwrite=True or choose another folder."
+        )
+
+    output_root.mkdir(parents=True, exist_ok=True)
+
+    written = 0
+    for src in sorted(source_root.rglob("*.h5")):
+        rel = src.relative_to(source_root)
+        dst = output_root / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+
+        with h5py.File(src, "r") as fin, h5py.File(dst, "w") as fout:
+            for k, v in fin.attrs.items():
+                fout.attrs[k] = v
+
+            for key in ("ismrmrd_header", "reconstruction_rss"):
+                if key not in fin:
+                    raise KeyError(f"Missing required key '{key}' in {src}")
+                fin.copy(fin[key], fout, name=key)
+
+        written += 1
+
+    return {"written_files": written, "output_root": str(output_root)}
