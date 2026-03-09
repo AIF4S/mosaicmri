@@ -1,9 +1,0 @@
-name: ismrmrd_env
-channels:
-  - conda-forge
-  - ismrmrd
-  - defaults
-channel_priority: strict
-dependencies:
-  - siemens_to_ismrmrd
-  - boost=1.80.0

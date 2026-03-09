@@ -12,3 +12,69 @@
 /varnet/knee_leaderboard_state_dict.pt
 /HUMUS-Net/humusnet_val_outputs
 /HUMUS-Net/humusnet_val_outputs_msk
+
+# Release hygiene: generated artifacts
+/outputs/
+/notebooks/outputs/
+/BENCHMARKS/outputs/
+/bart/outputs/
+/varnet/wandb/
+/HUMUS-Net/wandb/
+/HUMUS-Net/logs/
+/HUMUS-Net/humusnet_val_outputs/
+/HUMUS-Net/humusnet_val_outputs_msk/
+
+# Release hygiene: local execution scripts and runs
+/varnet/runs/
+/bart/runs/
+/HUMUS-Net/runs/
+
+# Cache/temp
+**/__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# ------------------------------------------------------------
+# MosaicMRI release scope
+# ------------------------------------------------------------
+
+# Exclude full external/submodule/tooling trees
+/dat_2_h5/
+/data_filtering_for_accelerated_mri/
+/HUMUS-Net/
+
+# Keep only selected BENCHMARKS files
+/BENCHMARKS/**
+!/BENCHMARKS/
+!/BENCHMARKS/validate_ankle_challenge_targets.ipynb
+!/BENCHMARKS/validate_contrast_challenge_targets.ipynb
+!/BENCHMARKS/validate_multicoil_test_targets.ipynb
+!/BENCHMARKS/validate_targets_core.py
+
+# Keep only selected dataset analysis notebooks
+/notebooks/**
+!/notebooks/
+!/notebooks/final_dataset_analysis.ipynb
+!/notebooks/final_dataset_category_stats.ipynb
+!/notebooks/final_read_msk_dataset.ipynb
+
+# Exclude varnet analysis outputs and extra scripts/notebooks
+/varnet/analize_results/
+/varnet/varnet_reproduce_20201111/
+/varnet/check_weights.ipynb
+/varnet/__init__.py
+/varnet/run_knee_inference_category_json.py
+/varnet/run_varnet_knee_inference_category_json.py
+/varnet/train_varnet_demo.py
+/varnet/train_varnet_per_category.py
+/varnet/varnet_dual_checkpoint_spine_10files.ipynb
+/varnet/varnet_recon_4files_per_anatomy_4models_grid.ipynb
+/varnet/varnet_single_file_recon.ipynb
+/varnet/varnet_twofiles_twoslices_twomodels_grid.ipynb
+
+# Keep only one sample run + one sample inference
+/varnet/runs/**
+!/varnet/runs/
+!/varnet/runs/sample_run.sh
+!/varnet/runs/inferences/
+!/varnet/runs/inferences/sample_inference.sh
