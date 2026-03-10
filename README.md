@@ -1,39 +1,72 @@
-# MSK MRI Dataset
+# MosaicMRI
+
+This repository contains code for MosaicMRI dataset analysis, VarNet training/inference, and benchmark validation notebooks for reconstruction submissions.
+
+## Released Scope
+
+The public release is focused on:
+
+- `varnet/` core training and inference code
+- `BENCHMARKS/` reconstruction validation utilities:
+  - `validate_multicoil_test_reconstructions.ipynb`
+  - `validate_ankle_challenge_reconstructions.ipynb`
+  - `validate_contrast_challenge_reconstructions.ipynb`
+  - `validate_reconstructions_core.py`
+- `notebooks/` analysis notebooks:
+  - `final_dataset_analysis.ipynb`
+  - `final_dataset_category_stats.ipynb`
+  - `final_read_msk_dataset.ipynb`
+
+Generated outputs, local runs, and internal tooling are intentionally excluded from release workflows.
+
+## Expected Dataset Layout
+
+Most scripts and notebooks assume a generic layout like:
+
+```text
+MosaicMRI/
+  multicoil_train/
+  multicoil_val/
+  multicoil_test/
+  anatomy_generalization_challenge/
+    ankle/
+  contrast_generalization_challenge/
+    T1_FS/
+```
 
 ## Environments
 
-There are two separate environments:
+The VarNet folder includes a full environment file:
 
-1) Notebook environment (name: `mri`) – for running the notebooks and twixtools
-- File: `./environment.yml`
+- `varnet/environment.yml`
 
-2) Converter environment (name: `ismrmrd_env`) – for the CLI converter `siemens_to_ismrmrd`
-- File: `./dat_2_h5/environment.yml`
+Sample run scripts use the environment name `mosaic_mri_varnet`.
 
-### Create envs
+## Quick Start
 
-- Install mamba into base once (faster, recommended):
+### 1. Train VarNet
 
 ```bash
-conda install -n base -c conda-forge mamba
+python varnet/train_mosaic_mri_varnet.py --help
 ```
 
-- Create the converter env (needed for DAT→H5):
+### 2. Run pretrained inference
 
 ```bash
-cd dat_2_h5
-mamba env create -f environment.yml
-# then activate when converting
-conda activate ismrmrd_env
+python varnet/run_pretrained_varnet_inference.py --help
 ```
 
-## Convert .dat → .h5 (ISMRMRD)
+### 3. Validate reconstructions for benchmark submission
 
-Script: `dat_2_h5/dat2mrdv2.sh`
+Open one of:
 
-- Uses the parameter map `parameter_maps/IsmrmrdParameterMap_NewData.xml` (+ XSL) by default.
-- Other parameter maps under `parameter_maps/examples/` are only examples.
-- Input folder = `data/datasets/msk_mri`
-- Output layout (created automatically):
-  - `data/datasets/msk_mri_h5/h5` – converted scans
-  - `data/datasets/msk_mri_h5/noise_v3/` – first noise measurement when present
+- `BENCHMARKS/validate_multicoil_test_reconstructions.ipynb`
+- `BENCHMARKS/validate_ankle_challenge_reconstructions.ipynb`
+- `BENCHMARKS/validate_contrast_challenge_reconstructions.ipynb`
+
+Validation workflow in each notebook:
+
+1. Check names, shapes, keys, and size limits.
+2. Detect if `kspace` is still present.
+3. Optionally export reconstruction-only files (`ismrmrd_header` + `reconstruction_rss`).
+4. Offer ZIP only when files pass all checks, `kspace` is absent, and size is within limit.
