@@ -7,7 +7,7 @@ This repository contains code for MosaicMRI dataset analysis, VarNet training/in
 The public release is focused on:
 
 - `varnet/` core training and inference code
-- `BENCHMARKS/` reconstruction validation utilities:
+- `BENCHMARKS/` reconstruction validation utilities for benchmark:
   - `validate_multicoil_test_reconstructions.ipynb`
   - `validate_ankle_challenge_reconstructions.ipynb`
   - `validate_contrast_challenge_reconstructions.ipynb`
@@ -55,18 +55,3 @@ python varnet/train_mosaic_mri_varnet.py --help
 ```bash
 python varnet/run_pretrained_varnet_inference.py --help
 ```
-
-### 3. Validate reconstructions for benchmark submission
-
-Open one of:
-
-- `BENCHMARKS/validate_multicoil_test_reconstructions.ipynb`
-- `BENCHMARKS/validate_ankle_challenge_reconstructions.ipynb`
-- `BENCHMARKS/validate_contrast_challenge_reconstructions.ipynb`
-
-Validation workflow in each notebook:
-
-1. Check names, shapes, keys, and size limits.
-2. Detect if `kspace` is still present.
-3. Optionally export reconstruction-only files (`ismrmrd_header` + `reconstruction_rss`).
-4. Offer ZIP only when files pass all checks, `kspace` is absent, and size is within limit.
