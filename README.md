@@ -11,39 +11,25 @@
 </p>
 
 <p align="center">
-  <a href="https://mosaicmri.ai"><img alt="Website" src="https://img.shields.io/badge/Website-mosaicmri.ai-2563EB?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
-  <a href="https://www.mosaicmri.ai/#cite"><img alt="Dataset Paper" src="https://img.shields.io/badge/Dataset%20Paper-Citation%20%2F%20PDF-6B7280?style=for-the-badge&logo=arxiv&logoColor=white"></a>
-  <a href="https://www.mosaicmri.ai/benchmark/"><img alt="Benchmark" src="https://img.shields.io/badge/Benchmark-MosaicMRI-FACC15?style=for-the-badge&logoColor=111111"></a>
+  <a href="https://mosaicmri.ai"><img alt="website" src="https://img.shields.io/badge/website-mosaicmri.ai-2563EB?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
+  <a href="https://www.mosaicmri.ai/#cite"><img alt="dataset paper" src="https://img.shields.io/badge/dataset%20paper-citation%20%2F%20pdf-6B7280?style=for-the-badge&logo=arxiv&logoColor=white"></a>
+  <a href="https://www.mosaicmri.ai/benchmark/"><img alt="benchmark" src="https://img.shields.io/badge/benchmark-mosaicmri-FACC15?style=for-the-badge&logoColor=111111"></a>
 </p>
 
-<p align="center">
-  <a href="varnet/"><img alt="VarNet Baseline" src="https://img.shields.io/badge/Baseline-VarNet-2563EB?style=flat-square"></a>
-  <a href="data_filtering_for_accelerated_mri/runs/train/"><img alt="U-Net and ViT Baselines" src="https://img.shields.io/badge/Baselines-U--Net%20%2B%20ViT-6B7280?style=flat-square"></a>
-  <a href="BENCHMARKS/"><img alt="Benchmark Tools" src="https://img.shields.io/badge/Benchmark%20Tools-BENCHMARKS-FFFFFF?style=flat-square"></a>
-</p>
+MosaicMRI is a large-scale raw musculoskeletal MRI dataset and benchmark for accelerated reconstruction under substantial clinical variability in anatomy, contrast, orientation, and coil configuration. This repository provides reference training and inference code, benchmark validation utilities, and reproducibility assets used in MosaicMRI experiments.
 
-This repository contains code for MosaicMRI dataset analysis, VarNet training/inference, and benchmark validation workflows.
+## Repository Scope
 
-## Released Scope
+- `varnet/`: primary VarNet training and inference pipeline for MosaicMRI.
+- `data_filtering_for_accelerated_mri/`: U-Net/ViT baselines and data-filtering workflows used in extended experiments.
+- `BENCHMARKS/`: benchmark validation notebooks and shared validation utilities.
+- `notebooks/`: dataset analysis notebooks for summary statistics and exploratory reporting.
 
-The public release is focused on:
+Large generated artifacts such as logs, checkpoints, cached tensors, and local outputs are intentionally excluded from version control.
 
-- `varnet/` core training and inference code
-- `BENCHMARKS/` reconstruction validation utilities for benchmark:
-  - `validate_multicoil_test_reconstructions.ipynb`
-  - `validate_ankle_challenge_reconstructions.ipynb`
-  - `validate_contrast_challenge_reconstructions.ipynb`
-  - `validate_reconstructions_core.py`
-- `notebooks/` analysis notebooks:
-  - `final_dataset_analysis.ipynb`
-  - `final_dataset_category_stats.ipynb`
-  - `final_read_msk_dataset.ipynb`
+## Expected Dataset Structure
 
-Generated outputs, local runs, and internal tooling are intentionally excluded from release workflows.
-
-## Expected Dataset Layout
-
-Most scripts and notebooks assume a generic layout like:
+Most scripts assume the following directory layout:
 
 ```text
 MosaicMRI/
@@ -56,24 +42,31 @@ MosaicMRI/
     T1_FS/
 ```
 
-## Environments
+## Environment
 
-The VarNet folder includes a full environment file:
+The reference environment is provided in `varnet/environment.yml`.
 
-- `varnet/environment.yml`
-
-Sample run scripts use the environment name `mosaic_mri_varnet`.
+```bash
+conda env create -f varnet/environment.yml
+conda activate mosaic_mri_varnet
+```
 
 ## Quick Start
 
-### 1. Train VarNet
+Reference CLI entry points:
 
 ```bash
 python varnet/train_mosaic_mri_varnet.py --help
-```
-
-### 2. Run pretrained inference
-
-```bash
 python varnet/run_pretrained_varnet_inference.py --help
 ```
+
+Benchmark validation tools are available in `BENCHMARKS/`, including:
+
+- `validate_multicoil_test_reconstructions.ipynb`
+- `validate_ankle_challenge_reconstructions.ipynb`
+- `validate_contrast_challenge_reconstructions.ipynb`
+- `validate_reconstructions_core.py`
+
+## Citation and Attribution
+
+If you use MosaicMRI in academic work, please cite the MosaicMRI dataset paper (see the citation section at https://mosaicmri.ai/#cite). VarNet code in this repository builds on the original fastMRI/VarNet framework and should be cited accordingly.
