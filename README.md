@@ -1,5 +1,3 @@
-# MosaicMRI
-
 <p align="center">
   <a href="https://mosaicmri.ai" target="_blank" rel="noopener noreferrer">
     <img src="title.png" alt="MosaicMRI" width="100%" />
