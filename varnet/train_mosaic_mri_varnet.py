@@ -220,8 +220,22 @@ class VarNetModuleWithDebugVis(VarNetModule):
 from dataloaders.custom_category_data_module_clean import CustomCategoryDataModule
 from dataloaders.custom_single_category_mix_data_module import SingleCategoryMixDataModule
 from dataloaders.custom_balanced_category_data_module import BalancedCategoryDataModule
-from dataloaders.custom_json_slice_mix_data_module import JsonSliceMixDataModule
 from dataloaders.custom_json_train_knee_val_data_module import JsonTrainKneeValDataModule
+from dataloaders.rebuttal_march_data_modules import (
+    FullNoAnkleNoAnkleValDataModule,
+    FullNoHipNoHipValDataModule,
+    FullNoWristHandNoWristHandValDataModule,
+    FullNoShoulderNoShoulderValDataModule,
+    FullRandomContrastFamilyShoulderValDataModule,
+    FullNoKneeNoKneeValDataModule,
+    FullRandomKneeValDataModule,
+    FullRandomShoulderValDataModule,
+    FullRandomSingleContrastKneeValDataModule,
+    ShoulderContrastFamilyShoulderValDataModule,
+    ShoulderOnlyShoulderValDataModule,
+    KneeOnlyKneeValDataModule,
+    KneeOnlySingleContrastKneeValDataModule,
+)
 
 
 def patched_log_image(self, name: str, image):
@@ -357,7 +371,7 @@ def cli_main(args):
     wandb_logger = None
     if not args.debug:
         wandb_logger = WandbLogger(
-            project="mskmri-varnet",
+            project="mskmri-rebuttal",
             name=run_name
         )
 
@@ -482,34 +496,8 @@ def cli_main(args):
             distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
         )
 
-    elif args.data_loader == "json_slice_mix":
-        data_module = JsonSliceMixDataModule(
-            data_path1=args.data_path1,
-            data_path2=args.data_path2,
-            selector_json_path=args.selector_json_path,
-            challenge=args.challenge,
-            train_transform=train_transform,
-            val_transform=val_transform,
-            test_transform=test_transform,
-            use_json_slices=True,
-            require_json_split=args.require_json_split,
-            val_source=getattr(args, "val_source", "mixed"),
-            test_split=args.test_split,
-            test_path1=args.test_path1,
-            test_path2=args.test_path2,
-            sample_rate=args.sample_rate,
-            val_sample_rate=args.val_sample_rate,
-            test_sample_rate=args.test_sample_rate,
-            volume_sample_rate=args.volume_sample_rate,
-            val_volume_sample_rate=args.val_volume_sample_rate,
-            test_volume_sample_rate=args.test_volume_sample_rate,
-            batch_size=args.batch_size,
-            num_workers=args.num_workers,
-            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
-        )
-
     elif args.data_loader == "json_train_knee_val":
-        # Train on explicit JSON slice selection; validate on MSK KNEE only.
+        # Train on explicit JSON slice selection; validate on one MSK category.
         # Note: we intentionally treat *all* JSON slices as training set.
         data_module = JsonTrainKneeValDataModule(
             data_path_train_root=args.data_path_train_root,
@@ -521,9 +509,204 @@ def cli_main(args):
             val_transform=val_transform,
             test_transform=test_transform,
             require_json_split=args.require_json_split,
+            val_category=args.json_val_category,
             batch_size=args.batch_size,
             num_workers=args.num_workers,
             distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+        )
+    elif args.data_loader == "knee_only_knee_val":
+        data_module = KneeOnlyKneeValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
+        )
+    elif args.data_loader == "full_random_knee_val":
+        data_module = FullRandomKneeValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            train_slice_limit=args.train_slice_limit,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
+        )
+    elif args.data_loader == "full_no_knee_no_knee_val":
+        data_module = FullNoKneeNoKneeValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
+        )
+    elif args.data_loader == "full_no_ankle_no_ankle_val":
+        data_module = FullNoAnkleNoAnkleValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
+        )
+    elif args.data_loader == "full_no_shoulder_no_shoulder_val":
+        data_module = FullNoShoulderNoShoulderValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
+        )
+    elif args.data_loader == "full_no_hip_no_hip_val":
+        data_module = FullNoHipNoHipValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
+        )
+    elif args.data_loader == "full_no_wrist_hand_no_wrist_hand_val":
+        data_module = FullNoWristHandNoWristHandValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
+        )
+    elif args.data_loader == "knee_single_contrast_knee_val":
+        data_module = KneeOnlySingleContrastKneeValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            contrast_name=args.contrast_name,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
+        )
+    elif args.data_loader == "full_random_single_contrast_knee_val":
+        data_module = FullRandomSingleContrastKneeValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            train_slice_limit=args.train_slice_limit,
+            contrast_name=args.contrast_name,
+            match_contrast_ratio=args.match_contrast_ratio,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
+        )
+    elif args.data_loader == "shoulder_only_shoulder_val":
+        data_module = ShoulderOnlyShoulderValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            train_slice_limit=args.train_slice_limit,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
+        )
+    elif args.data_loader == "full_random_shoulder_val":
+        data_module = FullRandomShoulderValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            train_slice_limit=args.train_slice_limit,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
+        )
+    elif args.data_loader == "shoulder_contrast_family_shoulder_val":
+        data_module = ShoulderContrastFamilyShoulderValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            train_slice_limit=args.train_slice_limit,
+            contrast_name=args.contrast_name,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
+        )
+    elif args.data_loader == "full_random_contrast_family_shoulder_val":
+        data_module = FullRandomContrastFamilyShoulderValDataModule(
+            data_path=args.data_path,
+            category_mapping_path=args.category_mapping_path,
+            challenge=args.challenge,
+            train_transform=train_transform,
+            val_transform=val_transform,
+            test_transform=test_transform,
+            train_slice_limit=args.train_slice_limit,
+            contrast_name=args.contrast_name,
+            match_contrast_ratio=args.match_contrast_ratio,
+            random_seed=args.rebuttal_random_seed,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            distributed_sampler=(args.accelerator in ("ddp", "ddp_cpu")),
+            use_dataset_cache_file=args.use_dataset_cache_file,
         )
 
     # ------------
@@ -591,7 +774,27 @@ def build_args():
     parser.add_argument(
         "--data_loader",
         default="default",
-    choices=("default", "custom_mix", "categories", "knees_only", "balanced_categories", "json_slice_mix", "json_train_knee_val"),
+        choices=(
+            "default",
+            "custom_mix",
+            "categories",
+            "knees_only",
+            "balanced_categories",
+            "json_train_knee_val",
+            "knee_only_knee_val",
+            "full_random_knee_val",
+            "full_no_knee_no_knee_val",
+            "full_no_ankle_no_ankle_val",
+            "full_no_shoulder_no_shoulder_val",
+            "full_no_hip_no_hip_val",
+            "full_no_wrist_hand_no_wrist_hand_val",
+            "knee_single_contrast_knee_val",
+            "full_random_single_contrast_knee_val",
+            "shoulder_only_shoulder_val",
+            "full_random_shoulder_val",
+            "shoulder_contrast_family_shoulder_val",
+            "full_random_contrast_family_shoulder_val",
+        ),
         type=str,
         help="Data loader type",
     )
@@ -604,12 +807,11 @@ def build_args():
     parser.add_argument(
         "--test_path2", default=None, type=Path)
 
-    # JsonSliceMixDataModule-specific
     parser.add_argument(
         "--selector_json_path",
         default=None,
         type=Path,
-        help="Path to dataset JSON containing selected files/slices (used by json_slice_mix)",
+        help="Path to dataset JSON containing selected files/slices (used by json_train_knee_val)",
     )
 
     # JsonTrainKneeValDataModule-specific
@@ -629,6 +831,37 @@ def build_args():
         "--require_json_split",
         action="store_true",
         help="If set, dataset1 only uses JSON entries whose split matches each partition (train/val/test).",
+    )
+    parser.add_argument(
+        "--json_val_category",
+        default="KNEE",
+        type=str,
+        help="Validation category for json_train_knee_val loader (e.g. KNEE, SHOULDER).",
+    )
+
+    # Rebuttal March dataloader-specific
+    parser.add_argument(
+        "--train_slice_limit",
+        default=10000,
+        type=int,
+        help="Slice limit for full-random rebuttal dataloaders.",
+    )
+    parser.add_argument(
+        "--contrast_name",
+        default=None,
+        type=str,
+        help="Contrast name for single-contrast rebuttal dataloaders (e.g., PD_FS, T1, T2_FS).",
+    )
+    parser.add_argument(
+        "--rebuttal_random_seed",
+        default=24,
+        type=int,
+        help="Random seed used for rebuttal random slice selection.",
+    )
+    parser.add_argument(
+        "--match_contrast_ratio",
+        action="store_true",
+        help="When using mixed-anatomy contrast-filtered loader with slice cap, match contrast slice ratio (e.g., PD vs PD_FS).",
     )
     
     parser.add_argument(

@@ -1,20 +1,20 @@
 """\
-DataModule: JSON-selected training slices + KNEE-only validation (MSK).
+DataModule: JSON-selected training slices + category-filtered validation (MSK).
 
 What it does
 ------------
 - Train set is built from a selector JSON that enumerates explicit (file, slice)
   pairs. Only those slices are used (no volume fallback).
 - Val set is built from the MSK dataset2 `multicoil_val` directory, filtered to
-  KNEE volumes using a filename->category JSON mapping.
+  a target category (default `KNEE`) using a filename->category JSON mapping.
 
 This is a small, purpose-built module to support workflows like:
 - train on dreamsim-selected slices
-- validate on MSK KNEE only
+- validate on one MSK anatomy category only
 
 Selector JSON schema
 --------------------
-We reuse the schema assumed by `custom_json_slice_mix_data_module.py`:
+Expected schema:
 
 {
   "files": {
@@ -38,6 +38,7 @@ Notes
 from __future__ import annotations
 
 import json
+import os
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
@@ -228,7 +229,7 @@ def _is_knee_file(fname: str, mapping: Dict[str, str]) -> bool:
 
 
 class JsonTrainKneeValDataModule(pl.LightningDataModule):
-    """Train on explicit JSON slices; validate on MSK KNEE volumes only."""
+    """Train on explicit JSON slices; validate on one MSK category."""
 
     def __init__(
         self,
@@ -242,6 +243,7 @@ class JsonTrainKneeValDataModule(pl.LightningDataModule):
         test_transform: Callable,
         *,
         require_json_split: bool = False,
+        val_category: str = "KNEE",
         batch_size: int = 1,
         num_workers: int = 4,
         distributed_sampler: bool = False,
@@ -258,6 +260,7 @@ class JsonTrainKneeValDataModule(pl.LightningDataModule):
         self.test_transform = test_transform
 
         self.require_json_split = require_json_split
+        self.val_category = str(val_category).upper()
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.distributed_sampler = distributed_sampler
@@ -289,31 +292,37 @@ class JsonTrainKneeValDataModule(pl.LightningDataModule):
 
         root = Path(self.data_path_val_root)
 
-        knee_files: List[Path] = []
+        category_files: List[Path] = []
         for key, cat in self._category_mapping.items():
-            if str(cat).upper() != "KNEE":
+            if str(cat).upper() != self.val_category:
                 continue
             raw_path = Path(key)
             file_path = raw_path if raw_path.is_absolute() else (root / raw_path)
             if file_path.is_file():
-                knee_files.append(file_path)
+                category_files.append(file_path)
 
-        if not knee_files:
-            print(f"[JsonTrainKneeVal] Warning: no KNEE files found under {root} using mapping {self.category_mapping_path}")
+        if not category_files:
+            print(
+                f"[JsonTrainKneeVal] Warning: no {self.val_category} files found under "
+                f"{root} using mapping {self.category_mapping_path}"
+            )
 
         ds = ListSliceDataset(
-            fnames=sorted(knee_files),
+            fnames=sorted(category_files),
             challenge=self.challenge,
             transform=self.val_transform,
             sample_rate=None,
             volume_sample_rate=None,
             use_dataset_cache=True,
-            dataset_cache_file="dataset_cache.pkl",
+            dataset_cache_file=f"dataset_cache_{self.__class__.__name__}_{os.getpid()}.pkl",
         )
 
         try:
             kept_vols = len({rs[0].name for rs in ds.raw_samples})
-            print(f"[JsonTrainKneeVal] Val dataset: {kept_vols} KNEE volumes (explicit list)")
+            print(
+                f"[JsonTrainKneeVal] Val dataset: {kept_vols} "
+                f"{self.val_category} volumes (explicit list)"
+            )
         except Exception:
             pass
 
@@ -378,7 +387,13 @@ class JsonTrainKneeValDataModule(pl.LightningDataModule):
             "--category_mapping_path",
             type=Path,
             required=True,
-            help="Filename->category mapping JSON used to filter validation to KNEE.",
+            help="Filename->category mapping JSON used to filter validation category.",
+        )
+        parser.add_argument(
+            "--val_category",
+            type=str,
+            default="KNEE",
+            help="Validation category to filter (e.g., KNEE, SHOULDER).",
         )
         parser.add_argument(
             "--require_json_split",

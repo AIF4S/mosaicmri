@@ -256,33 +256,37 @@ def vis(batch, slice_num, masked_kspace, target_cpu, output_cpu, kspace_output, 
 
 
 def run_inference(state_dict_file, data_path, output_path, device, cascades=12):
-    model = VarNet(num_cascades=cascades, pools=4, chans=18, sens_pools=4, sens_chans=8)
     # download the state_dict if we don't have it
     if state_dict_file is None:
+        doname=False
         model_name = MODEL_FNAMES["varnet_knee_mc"]
         if not Path(model_name).exists():
             url_root = VARNET_FOLDER
             download_model(url_root + model_name, model_name)
 
         state_dict_file = model_name
+        print(args.cascades)
         model = VarNet(num_cascades=cascades, pools=4, chans=18, sens_pools=4, sens_chans=8)
 
         model.load_state_dict(torch.load(state_dict_file))
     else:
+        doname=True
         print("\n Loading Model from checkpoint!!!\n")
         from fastmri.pl_modules import VarNetModule
         model = VarNetModule.load_from_checkpoint(state_dict_file)
     
     model = model.eval()
     print("\n ACCELERATIONS", args.accelerations)
+    print("\n CENTER FRACTIONS", args.center_fractions)
+    print("\n CASCADES", cascades)
+    print("\n RANDOM MASK")
 
     mask_func = subsample.create_mask_for_mask_type(
-        "equispaced_fraction", [0.08], [args.accelerations]
+        "random", [args.center_fractions], [args.accelerations]
     )
     # NEW VARNET DATA TRANSFORM WITH AUTO MASK AXIS
     # data loader setup
     data_transform = T.VarNetDataTransform(mask_func=mask_func)
-    #data_transform = VarNetDataTransformAutoMask(mask_func=mask_func)
     dataset = SliceDataset(root=data_path, transform=data_transform, challenge="multicoil")
     dataloader = torch.utils.data.DataLoader(dataset, num_workers=4)
 
@@ -296,15 +300,18 @@ def run_inference(state_dict_file, data_path, output_path, device, cascades=12):
         raise FileNotFoundError(f"Data path {data_path} does not exist.")
 
     # Modify output_path based on data_path content
-    folder_name = str(output_path).split("/")[-1]
-    root_name = str(output_path).split("/")[:-1]
-    root_name = Path("/".join(root_name))
-    if "msk" in str(data_path).lower():
-        print("\nDetected MSK dataset in data_path.")
-        output_path = root_name / "test_on_msk" / folder_name
-    elif "fastmri" in str(data_path).lower():
-        print("\nDetected fastMRI dataset in data_path.")
-        output_path = root_name / "test_on_fastmri" / folder_name
+    if doname:
+        folder_name = str(output_path).split("/")[-1]
+        epoch = int(str(state_dict_file).split("/")[-1].split("=")[1][:2])
+
+        root_name = str(output_path).split("/")[:-1]
+        root_name = Path("/".join(root_name))
+        if "msk" in str(data_path).lower():
+            print("\nDetected MSK dataset in data_path.")
+            output_path = root_name / "test_on_msk" / f"{folder_name}"
+        elif "fastmri" in str(data_path).lower():
+            print("\nDetected fastMRI dataset in data_path.")
+            output_path = root_name / "test_on_fastmri" / f"{folder_name}_{epoch}"
 
     output_path.mkdir(parents=True, exist_ok=True)
     files_with_errors = []
@@ -431,6 +438,12 @@ if __name__ == "__main__":
         type=int,
         default=8,
         help="Acceleration factor for mask",
+    )
+    parser.add_argument(
+        "--center_fractions",
+        type=float,
+        default=0.04,
+        help="Center fraction for mask",
     )
     parser.add_argument(
         "--save_every",

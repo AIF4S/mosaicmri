@@ -7,6 +7,7 @@ category mapping JSON file.
 """
 
 import json
+import os
 import random
 from argparse import ArgumentParser
 from pathlib import Path
@@ -136,8 +137,13 @@ class ListSliceDataset(torch.utils.data.Dataset):
         # Cache loading (keyed by tuple of filenames)
         cache_key = tuple(sorted(str(p) for p in self.fnames))
         if self.dataset_cache_file.exists() and use_dataset_cache:
-            with open(self.dataset_cache_file, "rb") as f:
-                dataset_cache: Dict[str, Any] = pickle.load(f)
+            try:
+                with open(self.dataset_cache_file, "rb") as f:
+                    dataset_cache: Dict[str, Any] = pickle.load(f)
+            except (EOFError, pickle.UnpicklingError, ValueError, AttributeError):
+                # Cache file can be corrupted when multiple jobs touch the same
+                # path; recover by rebuilding metadata cache.
+                dataset_cache = {}
         else:
             dataset_cache = {}
 
@@ -148,8 +154,12 @@ class ListSliceDataset(torch.utils.data.Dataset):
                     self.raw_samples.append((fname, slice_ind, metadata))
             if dataset_cache.get(cache_key) is None and use_dataset_cache:
                 dataset_cache[cache_key] = self.raw_samples
-                with open(self.dataset_cache_file, "wb") as f:
+                tmp_cache = self.dataset_cache_file.with_name(
+                    f"{self.dataset_cache_file.name}.{os.getpid()}.tmp"
+                )
+                with open(tmp_cache, "wb") as f:
                     pickle.dump(dataset_cache, f)
+                os.replace(tmp_cache, self.dataset_cache_file)
         else:
             self.raw_samples = dataset_cache[cache_key]
 
