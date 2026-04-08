@@ -40,8 +40,39 @@
 
 # Exclude full external/submodule/tooling trees
 /dat_2_h5/
-/data_filtering_for_accelerated_mri/
 /HUMUS-Net/
+
+# Track only the MSK-used subset from data_filtering_for_accelerated_mri.
+/data_filtering_for_accelerated_mri/**
+!/data_filtering_for_accelerated_mri/
+!/data_filtering_for_accelerated_mri/.gitignore
+!/data_filtering_for_accelerated_mri/LICENSE
+!/data_filtering_for_accelerated_mri/alignment_filter.py
+!/data_filtering_for_accelerated_mri/compute_embeddings.py
+!/data_filtering_for_accelerated_mri/run_end2end_baseline_direct.py
+!/data_filtering_for_accelerated_mri/run_end2end_baseline_inference_rss_only_h5.py
+!/data_filtering_for_accelerated_mri/runs/
+!/data_filtering_for_accelerated_mri/runs/train/
+!/data_filtering_for_accelerated_mri/runs/train/*.sh
+!/data_filtering_for_accelerated_mri/runs/infer/
+!/data_filtering_for_accelerated_mri/runs/infer/*.sh
+!/data_filtering_for_accelerated_mri/runs/prep/
+!/data_filtering_for_accelerated_mri/runs/prep/*.sh
+!/data_filtering_for_accelerated_mri/src/
+!/data_filtering_for_accelerated_mri/src/interfaces/
+!/data_filtering_for_accelerated_mri/src/interfaces/**
+!/data_filtering_for_accelerated_mri/src/data_filt_setups/
+!/data_filtering_for_accelerated_mri/src/data_filt_setups/**
+!/data_filtering_for_accelerated_mri/src/train_eval_setups/
+!/data_filtering_for_accelerated_mri/src/train_eval_setups/common_utils/
+!/data_filtering_for_accelerated_mri/src/train_eval_setups/common_utils/**
+!/data_filtering_for_accelerated_mri/src/train_eval_setups/end_to_end/
+!/data_filtering_for_accelerated_mri/src/train_eval_setups/end_to_end/**
+!/data_filtering_for_accelerated_mri/src/train_eval_setups/train_eval_setups.py
+!/data_filtering_for_accelerated_mri/configs/
+!/data_filtering_for_accelerated_mri/configs/train_eval_setups/
+!/data_filtering_for_accelerated_mri/configs/train_eval_setups/End2EndSetup/
+!/data_filtering_for_accelerated_mri/configs/train_eval_setups/End2EndSetup/*.yml
 
 # Keep only selected BENCHMARKS files
 /BENCHMARKS/**
@@ -65,6 +96,7 @@
 /varnet/__init__.py
 /varnet/run_knee_inference_category_json.py
 /varnet/run_varnet_knee_inference_category_json.py
+/varnet/dataloaders/custom_json_slice_mix_data_module.py
 /varnet/train_varnet_demo.py
 /varnet/train_varnet_per_category.py
 /varnet/varnet_dual_checkpoint_spine_10files.ipynb
