@@ -1,6 +1,29 @@
 # MosaicMRI
 
-This repository contains code for MosaicMRI dataset analysis, VarNet training/inference, and benchmark validation notebooks for reconstruction submissions.
+<p align="center">
+  <a href="https://mosaicmri.ai" target="_blank" rel="noopener noreferrer">
+    <img src="title.png" alt="MosaicMRI" width="100%" />
+  </a>
+</p>
+
+<p align="center">
+  <strong>Project website:</strong> <a href="https://mosaicmri.ai">mosaicmri.ai</a>
+</p>
+
+<p align="center">
+  <a href="https://mosaicmri.ai"><img alt="Website" src="https://img.shields.io/badge/Website-mosaicmri.ai-0A66C2?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
+  <a href="https://www.mosaicmri.ai/#cite"><img alt="Dataset Paper" src="https://img.shields.io/badge/Dataset%20Paper-Citation%20%2F%20PDF-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white"></a>
+  <a href="https://www.mosaicmri.ai/benchmark/"><img alt="Benchmark" src="https://img.shields.io/badge/Benchmark-MosaicMRI-1E8E3E?style=for-the-badge"></a>
+  <a href="https://github.com/paularguello07/msk_mri_dataset"><img alt="GitHub" src="https://img.shields.io/badge/Code-GitHub-181717?style=for-the-badge&logo=github&logoColor=white"></a>
+</p>
+
+<p align="center">
+  <a href="varnet/"><img alt="VarNet Baseline" src="https://img.shields.io/badge/Baseline-VarNet-4C1D95?style=flat-square"></a>
+  <a href="data_filtering_for_accelerated_mri/runs/train/"><img alt="U-Net and ViT Baselines" src="https://img.shields.io/badge/Baselines-U--Net%20%2B%20ViT-0F766E?style=flat-square"></a>
+  <a href="BENCHMARKS/"><img alt="Benchmark Tools" src="https://img.shields.io/badge/Benchmark%20Tools-BENCHMARKS-374151?style=flat-square"></a>
+</p>
+
+This repository contains code for MosaicMRI dataset analysis, VarNet training/inference, and benchmark validation workflows.
 
 ## Released Scope
 
