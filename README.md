@@ -11,14 +11,14 @@
 </p>
 
 <p align="center">
-  <a href="https://mosaicmri.ai"><img alt="website" src="https://img.shields.io/badge/website-mosaicmri.ai-2563EB?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
-  <a href="https://www.mosaicmri.ai/#cite"><img alt="dataset paper" src="https://img.shields.io/badge/dataset%20paper-citation%20%2F%20pdf-6B7280?style=for-the-badge&logo=arxiv&logoColor=white"></a>
-  <a href="https://www.mosaicmri.ai/benchmark/"><img alt="benchmark" src="https://img.shields.io/badge/benchmark-mosaicmri-FACC15?style=for-the-badge&logoColor=111111"></a>
+  <a href="https://mosaicmri.ai"><img alt="website" src="https://img.shields.io/badge/website-mosaicmri.ai-2563EB?style=flat-square"></a>
+  <a href="https://www.mosaicmri.ai/#cite"><img alt="paper" src="https://img.shields.io/badge/paper-citation%20%2F%20pdf-6B7280?style=flat-square"></a>
+  <a href="https://www.mosaicmri.ai/benchmark/"><img alt="benchmark" src="https://img.shields.io/badge/benchmark-mosaicmri-FACC15?style=flat-square"></a>
 </p>
 
 MosaicMRI is a large-scale raw musculoskeletal MRI dataset and benchmark for accelerated reconstruction under substantial clinical variability in anatomy, contrast, orientation, and coil configuration. This repository provides reference training and inference code, benchmark validation utilities, and reproducibility assets used in MosaicMRI experiments.
 
-## Repository Scope
+## Repository Details
 
 - `varnet/`: primary VarNet training and inference pipeline for MosaicMRI.
 - `data_filtering_for_accelerated_mri/`: U-Net/ViT baselines and data-filtering workflows used in extended experiments.
